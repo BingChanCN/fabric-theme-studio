@@ -223,6 +223,9 @@ export function ThemeGallery(props: FabricPageProps) {
                       {theme.material?.acrylic && (
                         <Badge tone="neutral">🪟 毛玻璃</Badge>
                       )}
+                      {theme.material?.wallpaper?.enabled && theme.material.wallpaper.url && (
+                        <Badge tone="info">🖼️ 壁纸</Badge>
+                      )}
                     </div>
                   </div>
 

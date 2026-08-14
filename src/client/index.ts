@@ -42,8 +42,8 @@ export function apply(ctx: ClientContext): void {
     kind: 'mod',
     id: 'fabric-theme-studio',
     name: 'Fabric Theme Studio',
-    version: '0.5.1',
-    description: '交互式主题调色工坊、智能色彩和声生成、VSCode 主题转换与纯 CSS 硬件加速动态材质',
+    version: '0.6.0',
+    description: '交互式主题调色工坊、智能色彩和声生成、VSCode 主题转换、聊天背景壁纸与纯 CSS 硬件加速动态材质',
     icon: React.createElement(PaletteIcon, { size: 16 }),
   })
 
@@ -113,7 +113,7 @@ export function apply(ctx: ClientContext): void {
     cycleNextTheme: () => {
       const all = themeEngine.getAllThemes()
       const current = themeEngine.getActiveTheme()
-      const nextIndex = (all.findIndex(t => t.id === current.id) + 1) % all.length
+      const nextIndex = (all.findIndex((t: ThemeDefinition) => t.id === current.id) + 1) % all.length
       const next = all[nextIndex] ?? all[0]!
       themeEngine.setActiveTheme(next.id)
       return next

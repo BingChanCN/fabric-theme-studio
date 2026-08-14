@@ -10,6 +10,25 @@ export type BackgroundEffect = 'none' | 'aurora' | 'cyber-grid' | 'mesh-gradient
 /** Speed multiplier for background ambient animations. */
 export type EffectSpeed = 'slow' | 'normal' | 'fast'
 
+/** Wallpaper fit mode for background sizing. */
+export type WallpaperFit = 'cover' | 'contain' | 'tile' | 'center'
+
+/** Chat and workspace background wallpaper configuration. */
+export interface ThemeWallpaper {
+  /** Whether the background wallpaper is enabled. */
+  enabled: boolean
+  /** Image URL or local API endpoint or base64 data URI. */
+  url?: string
+  /** Background image sizing mode (cover, contain, tile, center). Default 'cover'. */
+  fit?: WallpaperFit
+  /** Dimming overlay ratio (0 ~ 1, where 0 is no overlay and 0.85 is heavily dimmed). Default 0.55. */
+  dim?: number
+  /** Background blur radius in pixels (0 ~ 20). Default 0. */
+  blur?: number
+  /** Opacity of the background image (0 ~ 1). Default 1. */
+  opacity?: number
+}
+
 /** Material texture and dynamic ambient configuration. */
 export interface ThemeMaterial {
   /** Enables backdrop-filter blur on overlays, modals and toolbars. */
@@ -24,6 +43,8 @@ export interface ThemeMaterial {
   effectIntensity?: number
   /** Speed multiplier for background animations. */
   effectSpeed?: EffectSpeed
+  /** Chat and workspace background wallpaper configuration. */
+  wallpaper?: ThemeWallpaper
 }
 
 /** Tokens for core surfaces and backgrounds. */
@@ -141,6 +162,17 @@ export interface SaveCustomThemeRequest {
 
 export interface DeleteCustomThemeRequest {
   themeId: string
+}
+
+export interface UploadWallpaperRequest {
+  dataUrl: string
+  filename?: string
+  themeId?: string
+}
+
+export interface UploadWallpaperResponse {
+  url: string
+  filename: string
 }
 
 export interface ApiResponse<T = unknown> {

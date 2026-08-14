@@ -1,4 +1,8 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
+import * as fs from 'node:fs'
+import * as path from 'node:path'
+import * as os from 'node:os'
+import * as crypto from 'node:crypto'
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-host-webserver'
 import { BUILTIN_PRESETS, DEEPSEEK_CLASSIC } from './presets.ts'
@@ -8,6 +12,7 @@ import type {
   SetActiveThemeRequest,
   ThemeDefinition,
   ThemeStudioStatePayload,
+  UploadWallpaperRequest,
 } from './types.ts'
 
 function writeJson(res: ServerResponse, status: number, value: unknown): void {
@@ -26,6 +31,24 @@ async function readJson<T>(req: IncomingMessage): Promise<T | undefined> {
   for await (const chunk of req) body += chunk.toString()
   if (body.trim() === '') return undefined
   return JSON.parse(body) as T
+}
+
+export function getWallpaperStorageDir(): string {
+  const baseDir = process.env.DSH_HOME ?? path.join(os.homedir(), '.dsh')
+  const dir = path.join(baseDir, 'fabric-theme-studio', 'wallpapers')
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true })
+  }
+  return dir
+}
+
+const MIME_TYPES: Record<string, string> = {
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.webp': 'image/webp',
+  '.gif': 'image/gif',
+  '.svg': 'image/svg+xml',
 }
 
 export interface ThemeStoreState {
@@ -87,12 +110,12 @@ export class ThemeHostStore {
       activeTheme: this.getActiveTheme(),
       presets: BUILTIN_PRESETS,
       customThemes: this.getCustomThemes(),
-      version: '0.1.0',
+      version: '0.6.0',
     }
   }
 }
 
-/** Host extension for DeepSeek Harness: provides WebServer endpoints for theme management. */
+/** Host extension for DeepSeek Harness: provides WebServer endpoints for theme management and wallpaper hosting. */
 export function apply(ctx: Context): void {
   const store = new ThemeHostStore()
 
@@ -247,7 +270,132 @@ export function apply(ctx: Context): void {
         },
       })
 
+      // Wallpaper upload endpoint
+      const stopWallpaperUpload = webCtx.webServer.register({
+        kind: 'exact',
+        path: '/api/theme-studio/wallpaper',
+        handler: async (req, res) => {
+          if (req.method === 'OPTIONS') {
+            writeJson(res, 204, null)
+            return
+          }
+          if (req.method === 'POST') {
+            try {
+              const body = await readJson<UploadWallpaperRequest>(req)
+              if (!body || typeof body.dataUrl !== 'string' || !body.dataUrl.startsWith('data:image/')) {
+                writeJson(res, 400, { ok: false, error: 'invalid-data-url' })
+                return
+              }
+
+              // Extract mime and base64 payload
+              const match = body.dataUrl.match(/^data:(image\/[a-zA-Z0-9+.-]+);base64,(.+)$/)
+              if (!match || !match[1] || !match[2]) {
+                writeJson(res, 400, { ok: false, error: 'malformed-base64-image' })
+                return
+              }
+
+              const mimeType = match[1]
+              const base64Data = match[2]
+              const buffer = Buffer.from(base64Data, 'base64')
+
+              // 15MB file size limit
+              if (buffer.length > 15 * 1024 * 1024) {
+                writeJson(res, 413, { ok: false, error: 'image-too-large' })
+                return
+              }
+
+              let ext = '.png'
+              if (mimeType.includes('jpeg') || mimeType.includes('jpg')) ext = '.jpg'
+              else if (mimeType.includes('webp')) ext = '.webp'
+              else if (mimeType.includes('gif')) ext = '.gif'
+              else if (mimeType.includes('svg')) ext = '.svg'
+
+              const prefix = body.themeId ? body.themeId.replace(/[^a-zA-Z0-9_-]/g, '') : 'wp'
+              const randomHex = crypto.randomBytes(6).toString('hex')
+              const filename = `${prefix}-${randomHex}${ext}`
+
+              const wallpaperDir = getWallpaperStorageDir()
+              const filePath = path.join(wallpaperDir, filename)
+              fs.writeFileSync(filePath, buffer)
+
+              const publicUrl = `/api/theme-studio/wallpaper/${filename}`
+              writeJson(res, 200, {
+                ok: true,
+                data: {
+                  url: publicUrl,
+                  filename,
+                },
+              })
+            } catch (err) {
+              writeJson(res, 500, { ok: false, error: String(err) })
+            }
+            return
+          }
+          writeJson(res, 405, { ok: false, error: 'method-not-allowed' })
+        },
+      })
+
+      // Wallpaper serve endpoint (prefix matching for /api/theme-studio/wallpaper/:filename)
+      const stopWallpaperServe = webCtx.webServer.register({
+        kind: 'prefix',
+        path: '/api/theme-studio/wallpaper/',
+        handler: (req, res) => {
+          if (req.method === 'OPTIONS') {
+            writeJson(res, 204, null)
+            return
+          }
+          if (req.method !== 'GET' && req.method !== 'HEAD') {
+            writeJson(res, 405, { ok: false, error: 'method-not-allowed' })
+            return
+          }
+
+          try {
+            const urlPath = req.url ?? ''
+            const prefix = '/api/theme-studio/wallpaper/'
+            const prefixIdx = urlPath.indexOf(prefix)
+            const rawFilename = prefixIdx !== -1 ? urlPath.slice(prefixIdx + prefix.length).split('?')[0] : ''
+            const filename = path.basename(decodeURIComponent(rawFilename ?? ''))
+
+            if (!filename || filename === '.' || filename.includes('..')) {
+              writeJson(res, 400, { ok: false, error: 'invalid-filename' })
+              return
+            }
+
+            const wallpaperDir = getWallpaperStorageDir()
+            const filePath = path.join(wallpaperDir, filename)
+
+            if (!fs.existsSync(filePath)) {
+              writeJson(res, 404, { ok: false, error: 'wallpaper-not-found' })
+              return
+            }
+
+            const ext = path.extname(filename).toLowerCase()
+            const contentType = MIME_TYPES[ext] ?? 'application/octet-stream'
+            const stat = fs.statSync(filePath)
+
+            res.writeHead(200, {
+              'content-type': contentType,
+              'content-length': stat.size,
+              'cache-control': 'public, max-age=31536000, immutable',
+              'access-control-allow-origin': '*',
+            })
+
+            if (req.method === 'HEAD') {
+              res.end()
+              return
+            }
+
+            const stream = fs.createReadStream(filePath)
+            stream.pipe(res)
+          } catch (err) {
+            writeJson(res, 500, { ok: false, error: String(err) })
+          }
+        },
+      })
+
       return () => {
+        stopWallpaperServe()
+        stopWallpaperUpload()
         stopReset()
         stopCustom()
         stopActive()

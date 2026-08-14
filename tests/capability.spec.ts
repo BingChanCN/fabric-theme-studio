@@ -17,7 +17,7 @@ describe('Theme Studio Capability IMC API', () => {
       cycleNextTheme: () => {
         const all = themeEngine.getAllThemes()
         const current = themeEngine.getActiveTheme()
-        const nextIndex = (all.findIndex(t => t.id === current.id) + 1) % all.length
+        const nextIndex = (all.findIndex((t: { id: string }) => t.id === current.id) + 1) % all.length
         const next = all[nextIndex] ?? all[0]!
         themeEngine.setActiveTheme(next.id)
         return next

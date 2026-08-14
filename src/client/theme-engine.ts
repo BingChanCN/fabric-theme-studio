@@ -22,6 +22,7 @@ import type {
   ThemeMaterial,
   ThemeStudioStatePayload,
   ThemeTokens,
+  ThemeWallpaper,
 } from '../types.ts'
 
 const STORAGE_KEY_ACTIVE = 'fabric_theme_studio_active_id'
@@ -32,6 +33,7 @@ const STORAGE_KEY_EFFECT_ENABLED = 'fabric_theme_studio_effects_enabled'
 const STYLE_TAG_ID = 'fabric-theme-studio-injected-style'
 const BACKDROP_CONTAINER_ID = 'fabric-theme-backdrop'
 const NOISE_CONTAINER_ID = 'fabric-theme-backdrop-noise'
+const WALLPAPER_CONTAINER_ID = 'fabric-theme-wallpaper'
 
 /** Parse color string (rgb, rgba, hex) to RGB channels [0..255]. */
 export function parseColorToRgb(color: string): [number, number, number] | null {
@@ -111,10 +113,19 @@ export function generateTokenDictionary(
   const acrylic = material?.acrylic ?? false
   const noiseOpacity = material?.noiseOpacity ?? 0
   const edgeHighlight = material?.edgeHighlight ?? false
+  const wallpaper = material?.wallpaper
+  const hasWallpaper = Boolean(wallpaper?.enabled && wallpaper.url)
+  const dim = Math.min(0.95, Math.max(0.1, wallpaper?.dim ?? 0.65))
+
+  // When wallpaper is active, the base background token becomes semi-transparent
+  // so the conversation pane reveals the wallpaper while preserving reading contrast.
+  const bgBaseValue = hasWallpaper
+    ? colorToRgba(tokens.background.bgBase, dim)
+    : tokens.background.bgBase
 
   return {
     // DSH Core Background & Container Aliases
-    '--dsw-alias-bg-base': tokens.background.bgBase,
+    '--dsw-alias-bg-base': bgBaseValue,
     '--dsw-alias-bg-layer-1': tokens.background.bgElevated,
     '--dsw-alias-bg-layer-2': tokens.background.bgSubtle,
     '--dsw-alias-bg-layer-3': tokens.background.bgSurface,
@@ -249,45 +260,20 @@ export function generateTokenDictionary(
     '--dsw-color-accent-primary': tokens.accent.accentPrimary,
     '--dsw-color-accent-hover': tokens.accent.accentHover,
     '--dsw-color-accent-surface': tokens.accent.accentSurface,
-    '--dsw-color-success-base': tokens.status.success,
-    '--dsw-color-warning-base': tokens.status.warning,
-    '--dsw-color-error-base': tokens.status.error,
-    '--dsw-color-info-base': tokens.status.info,
-
-    '--fts-bg-base': tokens.background.bgBase,
-    '--fts-bg-elevated': tokens.background.bgElevated,
-    '--fts-bg-subtle': tokens.background.bgSubtle,
-    '--fts-bg-surface': tokens.background.bgSurface,
-    '--fts-bg-sunken': tokens.background.bgSunken,
-    '--fts-text-primary': tokens.text.textPrimary,
-    '--fts-text-secondary': tokens.text.textSecondary,
-    '--fts-text-tertiary': tokens.text.textTertiary,
-    '--fts-text-disabled': tokens.text.textDisabled,
-    '--fts-border-base': tokens.border.borderBase,
-    '--fts-border-subtle': tokens.border.borderSubtle,
-    '--fts-border-focus': tokens.border.borderFocus,
-    '--fts-brand-primary': tokens.brand.brandPrimary,
-    '--fts-brand-hover': tokens.brand.brandHover,
-    '--fts-brand-active': tokens.brand.brandActive,
-    '--fts-brand-surface': tokens.brand.brandSurface,
-    '--fts-brand-text': tokens.brand.brandText,
-    '--fts-accent-primary': tokens.accent.accentPrimary,
-    '--fts-accent-hover': tokens.accent.accentHover,
-    '--fts-accent-surface': tokens.accent.accentSurface,
-    '--fts-status-success': tokens.status.success,
-    '--fts-status-warning': tokens.status.warning,
-    '--fts-status-error': tokens.status.error,
-    '--fts-status-info': tokens.status.info,
-    '--fts-radius-sm': tokens.shape.radiusSm,
-    '--fts-radius-md': tokens.shape.radiusMd,
-    '--fts-radius-lg': tokens.shape.radiusLg,
-    '--fts-shadow-sm': tokens.shape.shadowSm,
-    '--fts-shadow-md': tokens.shape.shadowMd,
-    '--fts-shadow-lg': tokens.shape.shadowLg,
+    '--dsw-color-status-success': tokens.status.success,
+    '--dsw-color-status-warning': tokens.status.warning,
+    '--dsw-color-status-error': tokens.status.error,
+    '--dsw-color-status-info': tokens.status.info,
+    '--dsw-color-radius-sm': tokens.shape.radiusSm,
+    '--dsw-color-radius-md': tokens.shape.radiusMd,
+    '--dsw-color-radius-lg': tokens.shape.radiusLg,
+    '--dsw-color-shadow-sm': tokens.shape.shadowSm,
+    '--dsw-color-shadow-md': tokens.shape.shadowMd,
+    '--dsw-color-shadow-lg': tokens.shape.shadowLg,
   }
 }
 
-/** Generate CSS variables mapping for a theme covering DSH aliases and specific variables. */
+/** Generate injected CSS text for HTML Style tag. */
 export function generateCssVariables(
   tokens: ThemeTokens,
   material?: ThemeMaterial,
@@ -297,10 +283,56 @@ export function generateCssVariables(
   const lines: string[] = [
     ':root, body, body[data-ds-dark-theme], body[data-ds-light-theme], [data-fabric-theme] {',
   ]
+
   for (const [k, v] of Object.entries(dict)) {
     lines.push(`  ${k}: ${v} !important;`)
   }
   lines.push('}')
+
+  const wallpaper = material?.wallpaper
+  const hasWallpaper = Boolean(wallpaper?.enabled && wallpaper.url)
+
+  // Wallpaper layer styling
+  if (hasWallpaper && wallpaper?.url) {
+    const fit = wallpaper.fit ?? 'cover'
+    const size = fit === 'contain' ? 'contain' : fit === 'tile' ? 'auto' : fit === 'center' ? 'auto' : 'cover'
+    const repeat = fit === 'tile' ? 'repeat' : 'no-repeat'
+    const blur = Math.max(0, Math.min(30, wallpaper.blur ?? 0))
+    const opacity = Math.max(0, Math.min(1, wallpaper.opacity ?? 1))
+    const scale = blur > 0 ? '1.04' : '1'
+
+    lines.push(`
+#${WALLPAPER_CONTAINER_ID} {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: -10;
+  background-image: url(${JSON.stringify(wallpaper.url)});
+  background-size: ${size};
+  background-repeat: ${repeat};
+  background-position: center center;
+  background-attachment: fixed;
+  opacity: ${opacity};
+  filter: ${blur > 0 ? `blur(${blur}px)` : 'none'};
+  transform: scale(${scale});
+  transition: opacity 0.4s ease, filter 0.4s ease;
+}
+
+body[data-fabric-has-wallpaper="true"],
+body[data-fabric-has-wallpaper="true"] html {
+  background-color: transparent !important;
+}
+`)
+  } else {
+    lines.push(`
+#${WALLPAPER_CONTAINER_ID} {
+  display: none !important;
+}
+`)
+  }
 
   // Ambient lives on the Fabric workbench drawer (data-fabric-workbench),
   // not on a z-index:-1 body child that AppFrame's opaque bg-base covers.
@@ -691,6 +723,22 @@ export class ThemeStudioEngine {
         document.body.removeAttribute('data-ds-light-theme')
       }
 
+      const wallpaper = theme.material?.wallpaper
+      const hasWallpaper = Boolean(wallpaper?.enabled && wallpaper.url)
+      if (hasWallpaper) {
+        document.body.setAttribute('data-fabric-has-wallpaper', 'true')
+        let wpEl = document.getElementById(WALLPAPER_CONTAINER_ID)
+        if (!wpEl) {
+          wpEl = document.createElement('div')
+          wpEl.id = WALLPAPER_CONTAINER_ID
+          document.body.prepend(wpEl)
+        }
+        wpEl.style.display = 'block'
+      } else {
+        document.body.removeAttribute('data-fabric-has-wallpaper')
+        document.getElementById(WALLPAPER_CONTAINER_ID)?.remove()
+      }
+
       const effect: BackgroundEffect =
         this.dynamicEffectsEnabled && theme.material?.backgroundEffect
           ? theme.material.backgroundEffect
@@ -777,13 +825,15 @@ export class ThemeStudioEngine {
       if (res.ok) {
         const json = (await res.json()) as { ok: boolean; data?: ThemeStudioStatePayload }
         if (json.ok && json.data) {
-          const payload = json.data
-          if (payload.customThemes && payload.customThemes.length > 0) {
-            this.customThemes = [...payload.customThemes]
+          if (this.syncSeq !== currentSeq) {
+            return
           }
-          if (this.syncSeq === currentSeq && payload.activeThemeId) {
+          if (Array.isArray(json.data.customThemes)) {
+            this.customThemes = [...json.data.customThemes]
+          }
+          if (json.data.activeThemeId && !localStorage.getItem(STORAGE_KEY_ACTIVE)) {
             const all = this.getAllThemes()
-            const match = all.find(t => t.id === payload.activeThemeId)
+            const match = all.find(t => t.id === json.data?.activeThemeId)
             if (match) {
               this.activeThemeId = match.id
               this.activeTheme = match
@@ -794,7 +844,7 @@ export class ThemeStudioEngine {
         }
       }
     } catch {
-      // host offline or not reachable, fallback to local storage
+      // ignore network errors
     }
   }
 
@@ -803,11 +853,11 @@ export class ThemeStudioEngine {
     try {
       await fetch('/api/theme-studio/active', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ themeId }),
       })
     } catch {
-      // best-effort
+      // ignore network errors
     }
   }
 
@@ -816,11 +866,11 @@ export class ThemeStudioEngine {
     try {
       await fetch('/api/theme-studio/custom', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ theme }),
       })
     } catch {
-      // best-effort
+      // ignore network errors
     }
   }
 
@@ -829,70 +879,71 @@ export class ThemeStudioEngine {
     try {
       await fetch('/api/theme-studio/custom', {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ themeId }),
       })
     } catch {
-      // best-effort
+      // ignore network errors
     }
   }
 
   private async pushResetToHost(): Promise<void> {
     if (typeof fetch === 'undefined') return
     try {
-      await fetch('/api/theme-studio/reset', { method: 'POST' })
+      await fetch('/api/theme-studio/reset', {
+        method: 'POST',
+      })
     } catch {
-      // best-effort
+      // ignore network errors
     }
   }
 }
 
 /** Global singleton instance of ThemeStudioEngine. */
-export const themeEngine = new ThemeStudioEngine()
+export const themeStudioEngine = new ThemeStudioEngine()
+export const themeEngine = themeStudioEngine
 
-export interface UseThemeStudioResult {
-  activeThemeId: string
+/** React hook for subscribing to ThemeStudio state. */
+export function useThemeStudio(): {
   activeTheme: ThemeDefinition
+  activeThemeId: string
   presets: readonly ThemeDefinition[]
   customThemes: readonly ThemeDefinition[]
   allThemes: readonly ThemeDefinition[]
   autoFollowSystem: boolean
   dynamicEffectsEnabled: boolean
-  setActiveTheme: (id: string) => boolean
+  setActiveTheme: (themeId: string) => boolean
   applyCustomThemeDraft: (theme: ThemeDefinition) => void
   saveCustomTheme: (theme: ThemeDefinition) => void
-  deleteCustomTheme: (id: string) => boolean
+  deleteCustomTheme: (themeId: string) => boolean
   setAutoFollowSystem: (enabled: boolean) => void
   setDynamicEffectsEnabled: (enabled: boolean) => void
   resetAll: () => void
   cycleNextTheme: () => ThemeDefinition
-}
-
-/** React hook to consume ThemeStudioEngine state. */
-export function useThemeStudio(): UseThemeStudioResult {
+} {
   const [, setTick] = useState(0)
 
   useEffect(() => {
-    return themeEngine.subscribe(() => {
+    return themeStudioEngine.subscribe(() => {
       setTick(t => t + 1)
     })
   }, [])
 
   return {
-    activeThemeId: themeEngine.getActiveThemeId(),
-    activeTheme: themeEngine.getActiveTheme(),
-    presets: themeEngine.getPresets(),
-    customThemes: themeEngine.getCustomThemes(),
-    allThemes: themeEngine.getAllThemes(),
-    autoFollowSystem: themeEngine.isAutoFollowSystem(),
-    dynamicEffectsEnabled: themeEngine.isDynamicEffectsEnabled(),
-    setActiveTheme: (id: string) => themeEngine.setActiveTheme(id),
-    applyCustomThemeDraft: (theme: ThemeDefinition) => themeEngine.applyCustomThemeDraft(theme),
-    saveCustomTheme: (theme: ThemeDefinition) => themeEngine.saveCustomTheme(theme),
-    deleteCustomTheme: (id: string) => themeEngine.deleteCustomTheme(id),
-    setAutoFollowSystem: (enabled: boolean) => themeEngine.setAutoFollowSystem(enabled),
-    setDynamicEffectsEnabled: (enabled: boolean) => themeEngine.setDynamicEffectsEnabled(enabled),
-    resetAll: () => themeEngine.resetAll(),
-    cycleNextTheme: () => themeEngine.cycleNextTheme(),
+    activeTheme: themeStudioEngine.getActiveTheme(),
+    activeThemeId: themeStudioEngine.getActiveThemeId(),
+    presets: themeStudioEngine.getPresets(),
+    customThemes: themeStudioEngine.getCustomThemes(),
+    allThemes: themeStudioEngine.getAllThemes(),
+    autoFollowSystem: themeStudioEngine.isAutoFollowSystem(),
+    dynamicEffectsEnabled: themeStudioEngine.isDynamicEffectsEnabled(),
+    setActiveTheme: id => themeStudioEngine.setActiveTheme(id),
+    applyCustomThemeDraft: t => themeStudioEngine.applyCustomThemeDraft(t),
+    saveCustomTheme: t => themeStudioEngine.saveCustomTheme(t),
+    deleteCustomTheme: id => themeStudioEngine.deleteCustomTheme(id),
+    setAutoFollowSystem: e => themeStudioEngine.setAutoFollowSystem(e),
+    setDynamicEffectsEnabled: e => themeStudioEngine.setDynamicEffectsEnabled(e),
+    resetAll: () => themeStudioEngine.resetAll(),
+    cycleNextTheme: () => themeStudioEngine.cycleNextTheme(),
   }
 }

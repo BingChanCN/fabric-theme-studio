@@ -181,6 +181,9 @@ export function ComponentShowcase(props: FabricPageProps) {
             {activeTheme.material?.backgroundEffect && activeTheme.material.backgroundEffect !== 'none' && (
               <Badge tone="info">✨ 动态: {activeTheme.material.backgroundEffect}</Badge>
             )}
+            {activeTheme.material?.wallpaper?.enabled && activeTheme.material.wallpaper.url && (
+              <Badge tone="success">🖼️ 自定义壁纸已挂载</Badge>
+            )}
           </div>
         </div>
       </Section>

@@ -1,38 +1,52 @@
-import { useEffect, useRef, useState } from 'react'
-import type { FabricPageProps } from 'fabric/client'
+import React, { useRef, useState } from 'react'
 import { Badge, Modal, Page, PageHeader, Section, ToolbarButton } from 'fabric/ui'
 import {
   deriveThemeFromSeed,
   extractColorsFromImageData,
-  type HarmonyMode,
 } from '../../color-science.ts'
+import {
+  calculateContrastRatio,
+  evaluateContrastGrade,
+  useThemeStudio,
+} from '../theme-engine.ts'
+import styles from '../styles/studio.module.css'
 import type {
   BackgroundEffect,
   EffectSpeed,
   ThemeDefinition,
   ThemeMaterial,
-  ThemeTokens,
+  ThemeWallpaper,
+  WallpaperFit,
 } from '../../types.ts'
-import { calculateContrastRatio, evaluateContrastGrade, useThemeStudio } from '../theme-engine.ts'
-import styles from '../styles/studio.module.css'
 
-export function TokenStudio(props: FabricPageProps) {
+export interface TokenStudioProps {
+  notify: (message: string, options?: { tone?: 'info' | 'success' | 'warning' | 'error' }) => void
+}
+
+type HarmonyMode =
+  | 'complementary'
+  | 'analogous'
+  | 'triadic'
+  | 'split-complementary'
+  | 'monochromatic'
+
+/** Token Studio Component: Interactive theme designer and real-time customizer. */
+export const TokenStudio: React.FC<TokenStudioProps> = props => {
   const { activeTheme, saveCustomTheme, applyCustomThemeDraft } = useThemeStudio()
-  const [draft, setDraft] = useState<ThemeDefinition>(() => JSON.parse(JSON.stringify(activeTheme)))
-  const [saveName, setSaveName] = useState<string>('')
-  const [showSaveModal, setShowSaveModal] = useState<boolean>(false)
 
-  // Smart Palette & Image Extraction States
-  const [seedColor, setSeedColor] = useState<string>('#4176e6')
+  const [draft, setDraft] = useState<ThemeDefinition>(() =>
+    JSON.parse(JSON.stringify(activeTheme)) as ThemeDefinition,
+  )
+  const [showSaveModal, setShowSaveModal] = useState(false)
+  const [saveName, setSaveName] = useState('')
+
+  // Smart Color Science State
+  const [seedColor, setSeedColor] = useState('#4176e6')
   const [harmonyMode, setHarmonyMode] = useState<HarmonyMode>('complementary')
   const [paletteMode, setPaletteMode] = useState<'dark' | 'light'>('dark')
   const [extractedColors, setExtractedColors] = useState<string[]>([])
-  const fileInputRef = useRef<HTMLInputElement | null>(null)
-
-  // Sync draft when active theme changes from outside
-  useEffect(() => {
-    setDraft(JSON.parse(JSON.stringify(activeTheme)))
-  }, [activeTheme.id])
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const wallpaperInputRef = useRef<HTMLInputElement>(null)
 
   const contrastRatio = calculateContrastRatio(
     draft.tokens.background.bgBase,
@@ -40,61 +54,78 @@ export function TokenStudio(props: FabricPageProps) {
   )
   const contrastGrade = evaluateContrastGrade(contrastRatio)
 
-  const updateToken = <K extends keyof ThemeTokens>(
-    group: K,
-    key: keyof ThemeTokens[K],
-    value: string,
-  ) => {
-    setDraft(prev => {
-      const next: ThemeDefinition = {
-        ...prev,
-        tokens: {
-          ...prev.tokens,
-          [group]: {
-            ...prev.tokens[group],
-            [key]: value,
-          },
-        },
-      }
-      applyCustomThemeDraft(next)
-      return next
-    })
+  const updateToken = (group: keyof typeof draft.tokens, key: string, value: string) => {
+    const nextTokens = {
+      ...draft.tokens,
+      [group]: {
+        ...(draft.tokens[group] as unknown as Record<string, string>),
+        [key]: value,
+      },
+    }
+    const next: ThemeDefinition = {
+      ...draft,
+      tokens: nextTokens,
+    }
+    setDraft(next)
+    applyCustomThemeDraft(next)
   }
 
-  const updateMaterial = <K extends keyof ThemeMaterial>(key: K, value: ThemeMaterial[K]) => {
-    setDraft(prev => {
-      const next: ThemeDefinition = {
-        ...prev,
-        material: {
-          ...(prev.material ?? {}),
-          [key]: value,
-        },
-      }
-      applyCustomThemeDraft(next)
-      return next
-    })
+  const updateMaterial = (key: keyof ThemeMaterial, value: unknown) => {
+    const nextMaterial: ThemeMaterial = {
+      ...draft.material,
+      [key]: value,
+    }
+    const next: ThemeDefinition = {
+      ...draft,
+      material: nextMaterial,
+    }
+    setDraft(next)
+    applyCustomThemeDraft(next)
+  }
+
+  const updateWallpaper = (key: keyof ThemeWallpaper, value: unknown) => {
+    const currentWallpaper: ThemeWallpaper = draft.material?.wallpaper ?? {
+      enabled: true,
+      dim: 0.65,
+      fit: 'cover',
+      blur: 0,
+    }
+    const nextWallpaper: ThemeWallpaper = {
+      ...currentWallpaper,
+      [key]: value,
+    }
+    const nextMaterial: ThemeMaterial = {
+      ...draft.material,
+      wallpaper: nextWallpaper,
+    }
+    const next: ThemeDefinition = {
+      ...draft,
+      material: nextMaterial,
+    }
+    setDraft(next)
+    applyCustomThemeDraft(next)
   }
 
   const handleGenerateSmartPalette = () => {
     const derived = deriveThemeFromSeed(seedColor, {
       mode: paletteMode,
       harmony: harmonyMode,
-      name: `Smart ${paletteMode === 'dark' ? 'Dark' : 'Light'} (${harmonyMode})`,
+      name: `${draft.name} (${paletteMode === 'dark' ? 'Dark' : 'Light'})`,
     })
 
-    const newTokens: ThemeTokens = {
+    const newTokens = {
       background: {
-        bgBase: derived.tokens['--dsw-alias-bg-base'] ?? '#12161f',
-        bgElevated: derived.tokens['--dsw-alias-bg-layer-1'] ?? '#1b202e',
-        bgSubtle: derived.tokens['--dsw-alias-bg-layer-2'] ?? '#242b3d',
-        bgSurface: derived.tokens['--dsw-alias-bg-layer-3'] ?? '#2d354b',
-        bgSunken: derived.tokens['--dsw-alias-bg-base'] ?? '#0d1017',
+        bgBase: derived.tokens['--dsw-alias-bg-base'] ?? '#121218',
+        bgElevated: derived.tokens['--dsw-alias-bg-layer-1'] ?? '#1a1a24',
+        bgSubtle: derived.tokens['--dsw-alias-bg-layer-2'] ?? '#222230',
+        bgSurface: derived.tokens['--dsw-alias-bg-layer-3'] ?? '#2a2a3c',
+        bgSunken: derived.tokens['--dsw-color-bg-sunken'] ?? '#0e0e14',
       },
       text: {
         textPrimary: derived.tokens['--dsw-alias-label-primary'] ?? '#ffffff',
-        textSecondary: derived.tokens['--dsw-alias-label-secondary'] ?? '#a0aab8',
-        textTertiary: derived.tokens['--dsw-alias-label-tertiary'] ?? '#707a88',
-        textDisabled: derived.tokens['--dsw-alias-label-muted'] ?? '#48505c',
+        textSecondary: derived.tokens['--dsw-alias-label-secondary'] ?? '#a0a0b0',
+        textTertiary: derived.tokens['--dsw-alias-label-tertiary'] ?? '#707080',
+        textDisabled: derived.tokens['--dsw-alias-label-caption'] ?? '#505060',
       },
       border: {
         borderBase: derived.tokens['--dsw-alias-border-l2'] ?? 'rgba(255, 255, 255, 0.15)',
@@ -163,6 +194,95 @@ export function TokenStudio(props: FabricPageProps) {
     reader.readAsDataURL(file)
   }
 
+  const handleWallpaperUpload = async (file: File) => {
+    const reader = new FileReader()
+    reader.onload = async e => {
+      const dataUrl = e.target?.result
+      if (typeof dataUrl !== 'string') return
+
+      let targetUrl = dataUrl
+
+      // Try uploading to host server for persistent local static serving
+      try {
+        const res = await fetch('/api/theme-studio/wallpaper', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ dataUrl, themeId: draft.id }),
+        })
+        if (res.ok) {
+          const json = (await res.json()) as { ok: boolean; data?: { url: string } }
+          if (json.ok && json.data?.url) {
+            targetUrl = json.data.url
+          }
+        }
+      } catch {
+        // Fallback to data URL
+      }
+
+      // Also sample colors for instant theme extraction
+      const img = new Image()
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        const maxDim = 200
+        const scale = Math.min(maxDim / img.width, maxDim / img.height, 1)
+        canvas.width = Math.round(img.width * scale)
+        canvas.height = Math.round(img.height * scale)
+        const ctx = canvas.getContext('2d')
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+          const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+          const colors = extractColorsFromImageData(imgData, 6)
+          setExtractedColors(colors)
+          if (colors[0]) {
+            setSeedColor(colors[0])
+          }
+        }
+      }
+      img.src = dataUrl
+
+      const nextWallpaper: ThemeWallpaper = {
+        enabled: true,
+        url: targetUrl,
+        fit: draft.material?.wallpaper?.fit ?? 'cover',
+        dim: draft.material?.wallpaper?.dim ?? 0.65,
+        blur: draft.material?.wallpaper?.blur ?? 0,
+        opacity: draft.material?.wallpaper?.opacity ?? 1,
+      }
+
+      const nextMaterial: ThemeMaterial = {
+        ...draft.material,
+        wallpaper: nextWallpaper,
+      }
+
+      const next: ThemeDefinition = {
+        ...draft,
+        material: nextMaterial,
+      }
+
+      setDraft(next)
+      applyCustomThemeDraft(next)
+      props.notify('🖼️ 聊天背景壁纸已成功上传并应用到当前主题', { tone: 'success' })
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleClearWallpaper = () => {
+    const nextMaterial: ThemeMaterial = {
+      ...draft.material,
+      wallpaper: {
+        enabled: false,
+        url: '',
+      },
+    }
+    const next: ThemeDefinition = {
+      ...draft,
+      material: nextMaterial,
+    }
+    setDraft(next)
+    applyCustomThemeDraft(next)
+    props.notify('已清除背景壁纸，恢复纯色底色', { tone: 'info' })
+  }
+
   const handleSave = () => {
     const finalName = saveName.trim() === '' ? `${draft.name} (Custom)` : saveName.trim()
     const id = `custom-${Date.now()}`
@@ -214,11 +334,13 @@ export function TokenStudio(props: FabricPageProps) {
     props.notify('已重置当前未保存的微调', { tone: 'info' })
   }
 
+  const currentWallpaper = draft.material?.wallpaper
+
   return (
     <Page className={styles.studioPage ?? ''}>
       <PageHeader
         title="调色盘 (Token Studio)"
-        description="交互式调节 DSH 与 Fabric 语义设计变量、材质质感与智能调色生成"
+        description="交互式调节 DSH 与 Fabric 语义设计变量、聊天壁纸遮罩、材质质感与智能调色生成"
         actions={
           <div className={styles.headerActions}>
             <ToolbarButton
@@ -396,12 +518,134 @@ export function TokenStudio(props: FabricPageProps) {
         </div>
       </Section>
 
-      {/* Materials & Ambient Dynamics Configuration */}
+      {/* Materials, Ambient Dynamics & Wallpaper Configuration */}
       <Section
-        title="🪟 材质质感与动态背景 (Materials & Motion)"
-        description="配置亚克力毛玻璃、胶片微噪点、物理倒角高光与纯 CSS 硬件加速动态背景"
+        title="🪟 聊天壁纸、材质质感与动态背景 (Materials & Wallpaper)"
+        description="配置聊天背景自定义壁纸、对话遮罩压暗、亚克力毛玻璃与纯 CSS 硬件加速动态背景"
       >
         <div className={styles.materialGrid}>
+          {/* Chat Wallpaper Customizer */}
+          <div className={styles.materialCard}>
+            <div className={styles.materialTitle}>
+              <span>🖼️ 聊天背景壁纸与遮罩</span>
+              {currentWallpaper?.enabled && currentWallpaper.url && (
+                <Badge tone="success">壁纸生效中</Badge>
+              )}
+            </div>
+
+            <div className={styles.materialControlRow}>
+              <span className={styles.materialLabel}>启用背景壁纸</span>
+              <input
+                type="checkbox"
+                className={styles.checkboxInput}
+                checked={currentWallpaper?.enabled ?? false}
+                onChange={e => updateWallpaper('enabled', e.target.checked)}
+              />
+            </div>
+
+            <div className={styles.materialControlRow}>
+              <span className={styles.materialLabel}>壁纸图片</span>
+              <div className={styles.wallpaperActions}>
+                <input
+                  ref={wallpaperInputRef}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={e => {
+                    const file = e.target.files?.[0]
+                    if (file) void handleWallpaperUpload(file)
+                  }}
+                />
+                <button
+                  type="button"
+                  className={styles.wallpaperActionBtn}
+                  onClick={() => wallpaperInputRef.current?.click()}
+                >
+                  📁 上传本地壁纸
+                </button>
+                {currentWallpaper?.url && (
+                  <button
+                    type="button"
+                    className={styles.wallpaperDangerBtn}
+                    onClick={handleClearWallpaper}
+                  >
+                    🗑️ 清除
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {currentWallpaper?.url && (
+              <div className={styles.materialControlRow}>
+                <span className={styles.materialLabel}>壁纸地址</span>
+                <input
+                  type="text"
+                  className={styles.wallpaperUrlInput}
+                  value={currentWallpaper.url}
+                  placeholder="https://... 或本地文件路径"
+                  onChange={e => updateWallpaper('url', e.target.value)}
+                />
+              </div>
+            )}
+
+            <div className={styles.materialControlRow}>
+              <span className={styles.materialLabel}>平铺/适配方式</span>
+              <select
+                className={styles.selectInput}
+                value={currentWallpaper?.fit ?? 'cover'}
+                onChange={e => updateWallpaper('fit', e.target.value as WallpaperFit)}
+              >
+                <option value="cover">等比铺满 (Cover)</option>
+                <option value="contain">完整居中 (Contain)</option>
+                <option value="tile">阵列平铺 (Tile)</option>
+                <option value="center">原始居中 (Center)</option>
+              </select>
+            </div>
+
+            <div className={styles.materialControlRow}>
+              <span className={styles.materialLabel}>
+                对话压暗遮罩 ({Math.round((currentWallpaper?.dim ?? 0.65) * 100)}%)
+              </span>
+              <input
+                type="range"
+                min="0.1"
+                max="0.95"
+                step="0.05"
+                className={styles.sliderInput}
+                value={currentWallpaper?.dim ?? 0.65}
+                onChange={e => updateWallpaper('dim', Number.parseFloat(e.target.value))}
+              />
+            </div>
+
+            <div className={styles.materialControlRow}>
+              <span className={styles.materialLabel}>
+                背景虚化模糊 ({currentWallpaper?.blur ?? 0}px)
+              </span>
+              <input
+                type="range"
+                min="0"
+                max="20"
+                step="1"
+                className={styles.sliderInput}
+                value={currentWallpaper?.blur ?? 0}
+                onChange={e => updateWallpaper('blur', Number.parseInt(e.target.value, 10))}
+              />
+            </div>
+
+            {currentWallpaper?.url && extractedColors.length > 0 && (
+              <div style={{ paddingTop: '4px' }}>
+                <button
+                  type="button"
+                  className={styles.wallpaperActionBtn}
+                  style={{ width: '100%', display: 'flex', justifyContent: 'center', gap: '6px' }}
+                  onClick={handleGenerateSmartPalette}
+                >
+                  ✨ 基于当前壁纸提取色自动生成配套主题
+                </button>
+              </div>
+            )}
+          </div>
+
           {/* Material Textures */}
           <div className={styles.materialCard}>
             <div className={styles.materialTitle}>
@@ -538,6 +782,9 @@ export function TokenStudio(props: FabricPageProps) {
                 WCAG {contrastGrade} ({contrastRatio}:1)
               </Badge>
               <Badge tone="neutral">{draft.category.toUpperCase()}</Badge>
+              {draft.material?.wallpaper?.enabled && draft.material.wallpaper.url && (
+                <Badge tone="info">🖼️ 自定义壁纸</Badge>
+              )}
               {draft.material?.backgroundEffect && draft.material.backgroundEffect !== 'none' && (
                 <Badge tone="info">动效: {draft.material.backgroundEffect}</Badge>
               )}
@@ -580,147 +827,295 @@ export function TokenStudio(props: FabricPageProps) {
                 borderRadius: draft.tokens.shape.radiusSm,
               }}
             >
-              Subtle Tag
+              标签 (Tag)
             </span>
           </div>
         </div>
       </Section>
 
       {/* Token Groups Editor Grid */}
-      <div className={styles.editorGrid}>
-        {/* Background Group */}
-        <Section title="背景与层级 (Backgrounds)" description="控制窗口、卡片、侧边栏及深陷容器底色">
+      <Section title="语义 Token 变量微调" description="精确调节基础背景、层级、文字、边框与交互态">
+        <div className={styles.editorGrid}>
+          {/* Background Surfaces Group */}
           <div className={styles.tokenGroup}>
-            <TokenInput
-              label="bgBase (应用主背景)"
-              value={draft.tokens.background.bgBase}
-              onChange={v => updateToken('background', 'bgBase', v)}
-            />
-            <TokenInput
-              label="bgElevated (卡片/弹窗抬升)"
-              value={draft.tokens.background.bgElevated}
-              onChange={v => updateToken('background', 'bgElevated', v)}
-            />
-            <TokenInput
-              label="bgSubtle (次级容器背景)"
-              value={draft.tokens.background.bgSubtle}
-              onChange={v => updateToken('background', 'bgSubtle', v)}
-            />
-            <TokenInput
-              label="bgSurface (悬浮激活背景)"
-              value={draft.tokens.background.bgSurface}
-              onChange={v => updateToken('background', 'bgSurface', v)}
-            />
-            <TokenInput
-              label="bgSunken (输入框/凹陷底色)"
-              value={draft.tokens.background.bgSunken}
-              onChange={v => updateToken('background', 'bgSunken', v)}
-            />
-          </div>
-        </Section>
+            <div className={styles.materialTitle}>
+              <span>容器与背景 (Background Surfaces)</span>
+            </div>
 
-        {/* Text Group */}
-        <Section title="文字阶梯 (Typography)" description="各级文字层级的颜色与明暗对比">
+            <div className={styles.tokenRow}>
+              <label htmlFor="token-bgBase" className={styles.tokenLabel}>
+                --dsw-alias-bg-base (全局底色)
+              </label>
+              <div className={styles.tokenInputGroup}>
+                <input
+                  id="token-bgBase"
+                  type="text"
+                  className={styles.tokenInput}
+                  value={draft.tokens.background.bgBase}
+                  onChange={e => updateToken('background', 'bgBase', e.target.value)}
+                />
+                <input
+                  type="color"
+                  className={styles.colorPickerNative}
+                  value={
+                    draft.tokens.background.bgBase.startsWith('#')
+                      ? draft.tokens.background.bgBase
+                      : '#121218'
+                  }
+                  onChange={e => updateToken('background', 'bgBase', e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className={styles.tokenRow}>
+              <label htmlFor="token-bgElevated" className={styles.tokenLabel}>
+                --dsw-alias-bg-layer-1 (一级悬浮/气泡)
+              </label>
+              <div className={styles.tokenInputGroup}>
+                <input
+                  id="token-bgElevated"
+                  type="text"
+                  className={styles.tokenInput}
+                  value={draft.tokens.background.bgElevated}
+                  onChange={e => updateToken('background', 'bgElevated', e.target.value)}
+                />
+                <input
+                  type="color"
+                  className={styles.colorPickerNative}
+                  value={
+                    draft.tokens.background.bgElevated.startsWith('#')
+                      ? draft.tokens.background.bgElevated
+                      : '#181824'
+                  }
+                  onChange={e => updateToken('background', 'bgElevated', e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className={styles.tokenRow}>
+              <label htmlFor="token-bgSubtle" className={styles.tokenLabel}>
+                --dsw-alias-bg-layer-2 (次级面板)
+              </label>
+              <div className={styles.tokenInputGroup}>
+                <input
+                  id="token-bgSubtle"
+                  type="text"
+                  className={styles.tokenInput}
+                  value={draft.tokens.background.bgSubtle}
+                  onChange={e => updateToken('background', 'bgSubtle', e.target.value)}
+                />
+                <input
+                  type="color"
+                  className={styles.colorPickerNative}
+                  value={
+                    draft.tokens.background.bgSubtle.startsWith('#')
+                      ? draft.tokens.background.bgSubtle
+                      : '#202030'
+                  }
+                  onChange={e => updateToken('background', 'bgSubtle', e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className={styles.tokenRow}>
+              <label htmlFor="token-bgSurface" className={styles.tokenLabel}>
+                --dsw-alias-bg-layer-3 (卡片与输入框)
+              </label>
+              <div className={styles.tokenInputGroup}>
+                <input
+                  id="token-bgSurface"
+                  type="text"
+                  className={styles.tokenInput}
+                  value={draft.tokens.background.bgSurface}
+                  onChange={e => updateToken('background', 'bgSurface', e.target.value)}
+                />
+                <input
+                  type="color"
+                  className={styles.colorPickerNative}
+                  value={
+                    draft.tokens.background.bgSurface.startsWith('#')
+                      ? draft.tokens.background.bgSurface
+                      : '#28283c'
+                  }
+                  onChange={e => updateToken('background', 'bgSurface', e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Typography Text Group */}
           <div className={styles.tokenGroup}>
-            <TokenInput
-              label="textPrimary (主要文本)"
-              value={draft.tokens.text.textPrimary}
-              onChange={v => updateToken('text', 'textPrimary', v)}
-            />
-            <TokenInput
-              label="textSecondary (次要副标题)"
-              value={draft.tokens.text.textSecondary}
-              onChange={v => updateToken('text', 'textSecondary', v)}
-            />
-            <TokenInput
-              label="textTertiary (弱化说明文字)"
-              value={draft.tokens.text.textTertiary}
-              onChange={v => updateToken('text', 'textTertiary', v)}
-            />
-            <TokenInput
-              label="textDisabled (禁用状态文字)"
-              value={draft.tokens.text.textDisabled}
-              onChange={v => updateToken('text', 'textDisabled', v)}
-            />
-          </div>
-        </Section>
+            <div className={styles.materialTitle}>
+              <span>文字排版阶梯 (Typography)</span>
+            </div>
 
-        {/* Brand Group */}
-        <Section title="品牌与焦点色 (Brand & Focus)" description="主交互控件、高亮标识及光标选中色">
+            <div className={styles.tokenRow}>
+              <label htmlFor="token-textPrimary" className={styles.tokenLabel}>
+                --dsw-alias-label-primary (主要文本)
+              </label>
+              <div className={styles.tokenInputGroup}>
+                <input
+                  id="token-textPrimary"
+                  type="text"
+                  className={styles.tokenInput}
+                  value={draft.tokens.text.textPrimary}
+                  onChange={e => updateToken('text', 'textPrimary', e.target.value)}
+                />
+                <input
+                  type="color"
+                  className={styles.colorPickerNative}
+                  value={
+                    draft.tokens.text.textPrimary.startsWith('#')
+                      ? draft.tokens.text.textPrimary
+                      : '#ffffff'
+                  }
+                  onChange={e => updateToken('text', 'textPrimary', e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className={styles.tokenRow}>
+              <label htmlFor="token-textSecondary" className={styles.tokenLabel}>
+                --dsw-alias-label-secondary (次要说明)
+              </label>
+              <div className={styles.tokenInputGroup}>
+                <input
+                  id="token-textSecondary"
+                  type="text"
+                  className={styles.tokenInput}
+                  value={draft.tokens.text.textSecondary}
+                  onChange={e => updateToken('text', 'textSecondary', e.target.value)}
+                />
+                <input
+                  type="color"
+                  className={styles.colorPickerNative}
+                  value={
+                    draft.tokens.text.textSecondary.startsWith('#')
+                      ? draft.tokens.text.textSecondary
+                      : '#a0a0b0'
+                  }
+                  onChange={e => updateToken('text', 'textSecondary', e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className={styles.tokenRow}>
+              <label htmlFor="token-textTertiary" className={styles.tokenLabel}>
+                --dsw-alias-label-tertiary (弱化提示)
+              </label>
+              <div className={styles.tokenInputGroup}>
+                <input
+                  id="token-textTertiary"
+                  type="text"
+                  className={styles.tokenInput}
+                  value={draft.tokens.text.textTertiary}
+                  onChange={e => updateToken('text', 'textTertiary', e.target.value)}
+                />
+                <input
+                  type="color"
+                  className={styles.colorPickerNative}
+                  value={
+                    draft.tokens.text.textTertiary.startsWith('#')
+                      ? draft.tokens.text.textTertiary
+                      : '#707080'
+                  }
+                  onChange={e => updateToken('text', 'textTertiary', e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Brand & Accent Group */}
           <div className={styles.tokenGroup}>
-            <TokenInput
-              label="brandPrimary (品牌主色)"
-              value={draft.tokens.brand.brandPrimary}
-              onChange={v => updateToken('brand', 'brandPrimary', v)}
-            />
-            <TokenInput
-              label="brandHover (主色悬停态)"
-              value={draft.tokens.brand.brandHover}
-              onChange={v => updateToken('brand', 'brandHover', v)}
-            />
-            <TokenInput
-              label="brandActive (主色激活态)"
-              value={draft.tokens.brand.brandActive}
-              onChange={v => updateToken('brand', 'brandActive', v)}
-            />
-            <TokenInput
-              label="brandSurface (浅色强调表面)"
-              value={draft.tokens.brand.brandSurface}
-              onChange={v => updateToken('brand', 'brandSurface', v)}
-            />
-            <TokenInput
-              label="brandText (强调文本色)"
-              value={draft.tokens.brand.brandText}
-              onChange={v => updateToken('brand', 'brandText', v)}
-            />
-          </div>
-        </Section>
+            <div className={styles.materialTitle}>
+              <span>品牌色与强调 (Brand & Accent)</span>
+            </div>
 
-        {/* Border & Status Group */}
-        <Section title="边框与状态色 (Borders & Status)" description="分割线与语义状态反馈色">
-          <div className={styles.tokenGroup}>
-            <TokenInput
-              label="borderBase (标准边框)"
-              value={draft.tokens.border.borderBase}
-              onChange={v => updateToken('border', 'borderBase', v)}
-            />
-            <TokenInput
-              label="borderSubtle (微弱分割线)"
-              value={draft.tokens.border.borderSubtle}
-              onChange={v => updateToken('border', 'borderSubtle', v)}
-            />
-            <TokenInput
-              label="borderFocus (聚焦边框)"
-              value={draft.tokens.border.borderFocus}
-              onChange={v => updateToken('border', 'borderFocus', v)}
-            />
-            <TokenInput
-              label="status.success (成功绿)"
-              value={draft.tokens.status.success}
-              onChange={v => updateToken('status', 'success', v)}
-            />
-            <TokenInput
-              label="status.warning (警告橙)"
-              value={draft.tokens.status.warning}
-              onChange={v => updateToken('status', 'warning', v)}
-            />
-            <TokenInput
-              label="status.error (危险红)"
-              value={draft.tokens.status.error}
-              onChange={v => updateToken('status', 'error', v)}
-            />
-          </div>
-        </Section>
-      </div>
+            <div className={styles.tokenRow}>
+              <label htmlFor="token-brandPrimary" className={styles.tokenLabel}>
+                --dsw-alias-brand-primary (主品牌色)
+              </label>
+              <div className={styles.tokenInputGroup}>
+                <input
+                  id="token-brandPrimary"
+                  type="text"
+                  className={styles.tokenInput}
+                  value={draft.tokens.brand.brandPrimary}
+                  onChange={e => updateToken('brand', 'brandPrimary', e.target.value)}
+                />
+                <input
+                  type="color"
+                  className={styles.colorPickerNative}
+                  value={
+                    draft.tokens.brand.brandPrimary.startsWith('#')
+                      ? draft.tokens.brand.brandPrimary
+                      : '#4176e6'
+                  }
+                  onChange={e => updateToken('brand', 'brandPrimary', e.target.value)}
+                />
+              </div>
+            </div>
 
-      {/* Modal using Fabric v0.2.0 Modal primitive */}
+            <div className={styles.tokenRow}>
+              <label htmlFor="token-brandHover" className={styles.tokenLabel}>
+                --dsw-alias-brand-hover (悬停交互)
+              </label>
+              <div className={styles.tokenInputGroup}>
+                <input
+                  id="token-brandHover"
+                  type="text"
+                  className={styles.tokenInput}
+                  value={draft.tokens.brand.brandHover}
+                  onChange={e => updateToken('brand', 'brandHover', e.target.value)}
+                />
+                <input
+                  type="color"
+                  className={styles.colorPickerNative}
+                  value={
+                    draft.tokens.brand.brandHover.startsWith('#')
+                      ? draft.tokens.brand.brandHover
+                      : '#528bff'
+                  }
+                  onChange={e => updateToken('brand', 'brandHover', e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className={styles.tokenRow}>
+              <label htmlFor="token-borderBase" className={styles.tokenLabel}>
+                --dsw-alias-border-l2 (基础边框)
+              </label>
+              <div className={styles.tokenInputGroup}>
+                <input
+                  id="token-borderBase"
+                  type="text"
+                  className={styles.tokenInput}
+                  value={draft.tokens.border.borderBase}
+                  onChange={e => updateToken('border', 'borderBase', e.target.value)}
+                />
+                <input
+                  type="color"
+                  className={styles.colorPickerNative}
+                  value={
+                    draft.tokens.border.borderBase.startsWith('#')
+                      ? draft.tokens.border.borderBase
+                      : '#333340'
+                  }
+                  onChange={e => updateToken('border', 'borderBase', e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </Section>
+
+      {/* Save Custom Theme Modal Dialog */}
       <Modal
         open={showSaveModal}
+        title="保存为自定义主题"
         onClose={() => setShowSaveModal(false)}
-        title="另存为自定义主题"
-        description="将当前微调的所有 Token 打包存入本地库，可随时在画廊中切换使用"
         footer={
-          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
             <button
               type="button"
               className={styles.modalBtnCancel}
@@ -735,64 +1130,22 @@ export function TokenStudio(props: FabricPageProps) {
         }
       >
         <div className={styles.modalField}>
-          <label className={styles.modalLabel}>主题名称</label>
+          <label htmlFor="theme-name-input" className={styles.modalLabel}>
+            主题名称
+          </label>
           <input
+            id="theme-name-input"
             type="text"
-            placeholder="输入自定义主题名称..."
             className={styles.modalInput}
             value={saveName}
+            placeholder={`${draft.name} (Custom)`}
             onChange={e => setSaveName(e.target.value)}
-            autoFocus
           />
         </div>
-        <div className={styles.modalField}>
-          <label className={styles.modalLabel}>当前基线主题</label>
-          <div style={{ color: 'var(--dsw-alias-label-secondary)', fontSize: '13px' }}>
-            {draft.name} ({draft.category})
-          </div>
-        </div>
+        <p style={{ margin: 0, fontSize: '12px', color: 'var(--dsw-alias-label-secondary)' }}>
+          保存后将持久化存储在 DSH 宿主并同步注册到 Theme Studio 预设库中。
+        </p>
       </Modal>
     </Page>
   )
-}
-
-function TokenInput(props: { label: string; value: string; onChange: (val: string) => void }) {
-  return (
-    <div className={styles.tokenRow}>
-      <label className={styles.tokenLabel}>{props.label}</label>
-      <div className={styles.tokenInputGroup}>
-        <input
-          type="text"
-          className={styles.tokenInput}
-          value={props.value}
-          onChange={e => props.onChange(e.target.value)}
-        />
-        <input
-          type="color"
-          className={styles.colorPickerNative}
-          title="选择颜色"
-          value={parseRgbToHex(props.value)}
-          onChange={e => props.onChange(e.target.value)}
-        />
-      </div>
-    </div>
-  )
-}
-
-function parseRgbToHex(color: string): string {
-  const trimmed = color.trim().toLowerCase()
-  if (trimmed.startsWith('#')) {
-    if (trimmed.length === 4) {
-      return `#${trimmed[1]}${trimmed[1]}${trimmed[2]}${trimmed[2]}${trimmed[3]}${trimmed[3]}`
-    }
-    if (trimmed.length === 7) return trimmed
-  }
-  const match = trimmed.match(/^rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/)
-  if (match) {
-    const r = Number.parseInt(match[1]!, 10).toString(16).padStart(2, '0')
-    const g = Number.parseInt(match[2]!, 10).toString(16).padStart(2, '0')
-    const b = Number.parseInt(match[3]!, 10).toString(16).padStart(2, '0')
-    return `#${r}${g}${b}`
-  }
-  return '#000000'
 }

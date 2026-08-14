@@ -64,7 +64,7 @@ describe('CSS Variable Generation', () => {
     expect(css).toContain('--dsw-alias-label-primary: rgb(255, 255, 255) !important;')
     expect(css).toContain('--dsw-alias-brand-primary: rgb(65, 118, 230) !important;')
     expect(css).toContain('--dsw-color-brand-primary: rgb(65, 118, 230) !important;')
-    expect(css).toContain('--fts-brand-primary: rgb(65, 118, 230) !important;')
+    expect(css).toContain('--dsw-material-acrylic-bg:')
   })
 })
 
