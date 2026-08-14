@@ -110,7 +110,7 @@ export class ThemeHostStore {
       activeTheme: this.getActiveTheme(),
       presets: BUILTIN_PRESETS,
       customThemes: this.getCustomThemes(),
-      version: '0.6.0',
+      version: '0.6.1',
     }
   }
 }
