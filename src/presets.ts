@@ -1,0 +1,460 @@
+import type { ThemeDefinition } from './types.ts'
+
+export const DEEPSEEK_CLASSIC: ThemeDefinition = {
+  id: 'deepseek-classic',
+  name: 'DeepSeek Classic',
+  category: 'dark',
+  description: 'DeepSeek 官方经典深色主题，科技深蓝与深灰中性底色',
+  author: 'DeepSeek',
+  isBuiltin: true,
+  contrastRating: 'AAA',
+  tokens: {
+    background: {
+      bgBase: 'rgb(15, 17, 21)',
+      bgElevated: 'rgb(27, 27, 28)',
+      bgSubtle: 'rgb(35, 35, 36)',
+      bgSurface: 'rgb(44, 44, 46)',
+      bgSunken: 'rgb(10, 11, 14)',
+    },
+    text: {
+      textPrimary: 'rgb(255, 255, 255)',
+      textSecondary: 'rgb(207, 211, 214)',
+      textTertiary: 'rgb(129, 133, 140)',
+      textDisabled: 'rgb(67, 69, 74)',
+    },
+    border: {
+      borderBase: 'rgb(53, 54, 56)',
+      borderSubtle: 'rgb(35, 35, 36)',
+      borderFocus: 'rgb(65, 118, 230)',
+    },
+    brand: {
+      brandPrimary: 'rgb(65, 118, 230)',
+      brandHover: 'rgb(86, 134, 254)',
+      brandActive: 'rgb(47, 76, 143)',
+      brandSurface: 'rgba(65, 118, 230, 0.15)',
+      brandText: 'rgb(183, 200, 254)',
+    },
+    accent: {
+      accentPrimary: 'rgb(96, 165, 250)',
+      accentHover: 'rgb(147, 197, 253)',
+      accentSurface: 'rgba(96, 165, 250, 0.15)',
+    },
+    status: {
+      success: 'rgb(34, 197, 94)',
+      warning: 'rgb(245, 158, 11)',
+      error: 'rgb(239, 68, 68)',
+      info: 'rgb(59, 130, 246)',
+    },
+    shape: {
+      radiusSm: '4px',
+      radiusMd: '8px',
+      radiusLg: '12px',
+      shadowSm: '0 1px 2px 0 rgba(0, 0, 0, 0.3)',
+      shadowMd: '0 4px 6px -1px rgba(0, 0, 0, 0.4)',
+      shadowLg: '0 10px 15px -3px rgba(0, 0, 0, 0.5)',
+    },
+  },
+}
+
+export const NORD_AURORA: ThemeDefinition = {
+  id: 'nord-aurora',
+  name: 'Nord Aurora',
+  category: 'dark',
+  description: '北极极光暗色调，清澈冰蓝与低饱和度蓝灰阶',
+  author: 'Arctic Ice Studio',
+  isBuiltin: true,
+  contrastRating: 'AAA',
+  tokens: {
+    background: {
+      bgBase: '#2e3440',
+      bgElevated: '#3b4252',
+      bgSubtle: '#434c5e',
+      bgSurface: '#4c566a',
+      bgSunken: '#242933',
+    },
+    text: {
+      textPrimary: '#eceff4',
+      textSecondary: '#e5e9f0',
+      textTertiary: '#d8dee9',
+      textDisabled: '#616e88',
+    },
+    border: {
+      borderBase: '#4c566a',
+      borderSubtle: '#3b4252',
+      borderFocus: '#88c0d0',
+    },
+    brand: {
+      brandPrimary: '#88c0d0',
+      brandHover: '#8fbcbb',
+      brandActive: '#81a1c1',
+      brandSurface: 'rgba(136, 192, 208, 0.18)',
+      brandText: '#88c0d0',
+    },
+    accent: {
+      accentPrimary: '#b48ead',
+      accentHover: '#d08770',
+      accentSurface: 'rgba(180, 142, 173, 0.18)',
+    },
+    status: {
+      success: '#a3be8c',
+      warning: '#ebcb8b',
+      error: '#bf616a',
+      info: '#81a1c1',
+    },
+    shape: {
+      radiusSm: '6px',
+      radiusMd: '10px',
+      radiusLg: '14px',
+      shadowSm: '0 1px 3px rgba(36, 41, 51, 0.4)',
+      shadowMd: '0 4px 8px rgba(36, 41, 51, 0.5)',
+      shadowLg: '0 12px 20px rgba(36, 41, 51, 0.6)',
+    },
+  },
+}
+
+export const CYBERPUNK_NEON: ThemeDefinition = {
+  id: 'cyberpunk-neon',
+  name: 'Cyberpunk Neon',
+  category: 'special',
+  description: '赛博朋克高对比霓虹主题，黑曜石夜幕与电光粉/荧光青',
+  author: 'Night City',
+  isBuiltin: true,
+  contrastRating: 'AAA',
+  tokens: {
+    background: {
+      bgBase: '#0d0d12',
+      bgElevated: '#161622',
+      bgSubtle: '#222236',
+      bgSurface: '#2d2d48',
+      bgSunken: '#050508',
+    },
+    text: {
+      textPrimary: '#00ffff',
+      textSecondary: '#ff77c6',
+      textTertiary: '#a3a3c2',
+      textDisabled: '#575778',
+    },
+    border: {
+      borderBase: '#ff007f',
+      borderSubtle: '#471435',
+      borderFocus: '#00ffff',
+    },
+    brand: {
+      brandPrimary: '#ff007f',
+      brandHover: '#ff409f',
+      brandActive: '#cc0066',
+      brandSurface: 'rgba(255, 0, 127, 0.25)',
+      brandText: '#ff77c6',
+    },
+    accent: {
+      accentPrimary: '#00ffff',
+      accentHover: '#66ffff',
+      accentSurface: 'rgba(0, 255, 255, 0.22)',
+    },
+    status: {
+      success: '#00ff88',
+      warning: '#ffee00',
+      error: '#ff0055',
+      info: '#00ccff',
+    },
+    shape: {
+      radiusSm: '2px',
+      radiusMd: '4px',
+      radiusLg: '6px',
+      shadowSm: '0 0 8px rgba(255, 0, 127, 0.4)',
+      shadowMd: '0 0 16px rgba(0, 255, 255, 0.4)',
+      shadowLg: '0 0 28px rgba(255, 0, 127, 0.5)',
+    },
+  },
+}
+
+export const CATPPUCCIN_MOCHA: ThemeDefinition = {
+  id: 'catppuccin-mocha',
+  name: 'Catppuccin Mocha',
+  category: 'dark',
+  description: '柔和舒适的摩卡暗色调，薰衣草紫与蜜桃暖调点缀',
+  author: 'Catppuccin Org',
+  isBuiltin: true,
+  contrastRating: 'AAA',
+  tokens: {
+    background: {
+      bgBase: '#1e1e2e',
+      bgElevated: '#252538',
+      bgSubtle: '#313244',
+      bgSurface: '#45475a',
+      bgSunken: '#181825',
+    },
+    text: {
+      textPrimary: '#cdd6f4',
+      textSecondary: '#bac2de',
+      textTertiary: '#a6adc8',
+      textDisabled: '#6c7086',
+    },
+    border: {
+      borderBase: '#45475a',
+      borderSubtle: '#313244',
+      borderFocus: '#cba6f7',
+    },
+    brand: {
+      brandPrimary: '#cba6f7',
+      brandHover: '#d8bbf9',
+      brandActive: '#b485ee',
+      brandSurface: 'rgba(203, 166, 247, 0.18)',
+      brandText: '#cba6f7',
+    },
+    accent: {
+      accentPrimary: '#f5c2e7',
+      accentHover: '#fab387',
+      accentSurface: 'rgba(245, 194, 231, 0.18)',
+    },
+    status: {
+      success: '#a6e3a1',
+      warning: '#f9e2af',
+      error: '#f38ba8',
+      info: '#89b4fa',
+    },
+    shape: {
+      radiusSm: '8px',
+      radiusMd: '12px',
+      radiusLg: '16px',
+      shadowSm: '0 2px 4px rgba(24, 24, 37, 0.4)',
+      shadowMd: '0 6px 12px rgba(24, 24, 37, 0.5)',
+      shadowLg: '0 14px 24px rgba(24, 24, 37, 0.6)',
+    },
+  },
+}
+
+export const GRUVBOX_RETRO: ThemeDefinition = {
+  id: 'gruvbox-retro',
+  name: 'Gruvbox Retro',
+  category: 'dark',
+  description: '复古暖调暖棕暗色，怀旧羊皮纸黄与琥珀金橙',
+  author: 'morhetz',
+  isBuiltin: true,
+  contrastRating: 'AAA',
+  tokens: {
+    background: {
+      bgBase: '#282828',
+      bgElevated: '#32302f',
+      bgSubtle: '#3c3836',
+      bgSurface: '#504945',
+      bgSunken: '#1d2021',
+    },
+    text: {
+      textPrimary: '#ebdbb2',
+      textSecondary: '#d5c4a1',
+      textTertiary: '#bdae93',
+      textDisabled: '#7c6f64',
+    },
+    border: {
+      borderBase: '#504945',
+      borderSubtle: '#3c3836',
+      borderFocus: '#fe8019',
+    },
+    brand: {
+      brandPrimary: '#fe8019',
+      brandHover: '#fabd2f',
+      brandActive: '#d65d0e',
+      brandSurface: 'rgba(254, 128, 25, 0.2)',
+      brandText: '#fe8019',
+    },
+    accent: {
+      accentPrimary: '#b8bb26',
+      accentHover: '#8ec07c',
+      accentSurface: 'rgba(184, 187, 38, 0.2)',
+    },
+    status: {
+      success: '#b8bb26',
+      warning: '#fabd2f',
+      error: '#fb4934',
+      info: '#83a598',
+    },
+    shape: {
+      radiusSm: '4px',
+      radiusMd: '8px',
+      radiusLg: '10px',
+      shadowSm: '0 2px 4px rgba(29, 32, 33, 0.5)',
+      shadowMd: '0 4px 10px rgba(29, 32, 33, 0.6)',
+      shadowLg: '0 10px 18px rgba(29, 32, 33, 0.7)',
+    },
+  },
+}
+
+export const TOKYO_NIGHT: ThemeDefinition = {
+  id: 'tokyo-night',
+  name: 'Tokyo Night',
+  category: 'dark',
+  description: '东京霓虹夜景深邃紫蓝调，冰晶蓝与品红光晕',
+  author: 'enkia',
+  isBuiltin: true,
+  contrastRating: 'AAA',
+  tokens: {
+    background: {
+      bgBase: '#1a1b26',
+      bgElevated: '#24283b',
+      bgSubtle: '#2f354f',
+      bgSurface: '#414868',
+      bgSunken: '#16161e',
+    },
+    text: {
+      textPrimary: '#c0caf5',
+      textSecondary: '#a9b1d6',
+      textTertiary: '#7aa2f7',
+      textDisabled: '#565f89',
+    },
+    border: {
+      borderBase: '#414868',
+      borderSubtle: '#2f354f',
+      borderFocus: '#7aa2f7',
+    },
+    brand: {
+      brandPrimary: '#7aa2f7',
+      brandHover: '#89b4fa',
+      brandActive: '#3d59a1',
+      brandSurface: 'rgba(122, 162, 247, 0.18)',
+      brandText: '#7aa2f7',
+    },
+    accent: {
+      accentPrimary: '#bb9af7',
+      accentHover: '#ff007c',
+      accentSurface: 'rgba(187, 154, 247, 0.18)',
+    },
+    status: {
+      success: '#9ece6a',
+      warning: '#e0af68',
+      error: '#f7768e',
+      info: '#2ac3de',
+    },
+    shape: {
+      radiusSm: '6px',
+      radiusMd: '10px',
+      radiusLg: '14px',
+      shadowSm: '0 2px 4px rgba(22, 22, 30, 0.5)',
+      shadowMd: '0 6px 12px rgba(22, 22, 30, 0.6)',
+      shadowLg: '0 12px 24px rgba(22, 22, 30, 0.7)',
+    },
+  },
+}
+
+export const SOLARIZED_LIGHT: ThemeDefinition = {
+  id: 'solarized-light',
+  name: 'Solarized Light',
+  category: 'light',
+  description: '经典柔和亮色视力保护色盘，暖米色底配温润青蓝',
+  author: 'Ethan Schoonover',
+  isBuiltin: true,
+  contrastRating: 'AA',
+  tokens: {
+    background: {
+      bgBase: '#fdf6e3',
+      bgElevated: '#eee8d5',
+      bgSubtle: '#e0d8c3',
+      bgSurface: '#d4ccb8',
+      bgSunken: '#ffffff',
+    },
+    text: {
+      textPrimary: '#657b83',
+      textSecondary: '#586e75',
+      textTertiary: '#93a1a1',
+      textDisabled: '#b7c2c2',
+    },
+    border: {
+      borderBase: '#d4ccb8',
+      borderSubtle: '#e0d8c3',
+      borderFocus: '#268bd2',
+    },
+    brand: {
+      brandPrimary: '#268bd2',
+      brandHover: '#2aa198',
+      brandActive: '#1d6fa5',
+      brandSurface: 'rgba(38, 139, 210, 0.12)',
+      brandText: '#268bd2',
+    },
+    accent: {
+      accentPrimary: '#d33682',
+      accentHover: '#b58900',
+      accentSurface: 'rgba(211, 54, 130, 0.12)',
+    },
+    status: {
+      success: '#859900',
+      warning: '#b58900',
+      error: '#dc322f',
+      info: '#2aa198',
+    },
+    shape: {
+      radiusSm: '6px',
+      radiusMd: '8px',
+      radiusLg: '12px',
+      shadowSm: '0 1px 3px rgba(101, 123, 131, 0.12)',
+      shadowMd: '0 4px 8px rgba(101, 123, 131, 0.16)',
+      shadowLg: '0 10px 16px rgba(101, 123, 131, 0.2)',
+    },
+  },
+}
+
+export const MONOCHROME_PRO: ThemeDefinition = {
+  id: 'monochrome-pro',
+  name: 'Monochrome Pro',
+  category: 'special',
+  description: '极致极简黑白高反差主题，纯粹锐利、无彩色干扰',
+  author: 'Minimalist Design',
+  isBuiltin: true,
+  contrastRating: 'AAA',
+  tokens: {
+    background: {
+      bgBase: '#000000',
+      bgElevated: '#111111',
+      bgSubtle: '#1f1f1f',
+      bgSurface: '#2e2e2e',
+      bgSunken: '#080808',
+    },
+    text: {
+      textPrimary: '#ffffff',
+      textSecondary: '#dcdcdc',
+      textTertiary: '#aaaaaa',
+      textDisabled: '#555555',
+    },
+    border: {
+      borderBase: '#444444',
+      borderSubtle: '#282828',
+      borderFocus: '#ffffff',
+    },
+    brand: {
+      brandPrimary: '#ffffff',
+      brandHover: '#e0e0e0',
+      brandActive: '#cccccc',
+      brandSurface: 'rgba(255, 255, 255, 0.15)',
+      brandText: '#ffffff',
+    },
+    accent: {
+      accentPrimary: '#d0d0d0',
+      accentHover: '#f0f0f0',
+      accentSurface: 'rgba(200, 200, 200, 0.15)',
+    },
+    status: {
+      success: '#ffffff',
+      warning: '#e0e0e0',
+      error: '#ffffff',
+      info: '#cccccc',
+    },
+    shape: {
+      radiusSm: '0px',
+      radiusMd: '0px',
+      radiusLg: '2px',
+      shadowSm: 'none',
+      shadowMd: '0 2px 0 #ffffff',
+      shadowLg: '0 4px 0 #ffffff',
+    },
+  },
+}
+
+export const BUILTIN_PRESETS: readonly ThemeDefinition[] = [
+  DEEPSEEK_CLASSIC,
+  NORD_AURORA,
+  CYBERPUNK_NEON,
+  CATPPUCCIN_MOCHA,
+  GRUVBOX_RETRO,
+  TOKYO_NIGHT,
+  SOLARIZED_LIGHT,
+  MONOCHROME_PRO,
+]

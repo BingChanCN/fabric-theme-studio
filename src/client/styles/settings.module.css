@@ -1,0 +1,150 @@
+.settingsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 640px;
+  width: 100%;
+}
+
+.settingRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--dsw-color-border-subtle, #282833);
+}
+
+.settingLabelGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.settingTitle {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--dsw-color-text-primary, #ffffff);
+}
+
+.settingDesc {
+  font-size: 12px;
+  color: var(--dsw-color-text-secondary, #a0a0b0);
+}
+
+.settingSelect {
+  background-color: var(--dsw-color-bg-sunken, #16171d);
+  border: 1px solid var(--dsw-color-border-base, #333340);
+  color: var(--dsw-color-text-primary, #ffffff);
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: var(--dsw-radius-sm, 4px);
+  outline: none;
+}
+
+.badgeRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btnLink {
+  background: transparent;
+  border: none;
+  color: var(--dsw-color-brand-primary, #4176e6);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.btnLink:hover {
+  text-decoration: underline;
+}
+
+.btnSecondary {
+  background-color: var(--dsw-color-bg-surface, #2a2a38);
+  color: var(--dsw-color-text-primary, #ffffff);
+  border: 1px solid var(--dsw-color-border-base, #444455);
+  padding: 6px 14px;
+  font-size: 13px;
+  border-radius: var(--dsw-radius-sm, 4px);
+  cursor: pointer;
+}
+
+.btnSecondary:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.importBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--dsw-color-border-subtle, #282833);
+}
+
+.importTextarea {
+  background-color: var(--dsw-color-bg-sunken, #16171d);
+  border: 1px solid var(--dsw-color-border-base, #333340);
+  color: var(--dsw-color-text-primary, #ffffff);
+  font-family: monospace;
+  font-size: 12px;
+  padding: 8px 12px;
+  border-radius: var(--dsw-radius-sm, 4px);
+  outline: none;
+  resize: vertical;
+}
+
+.errorHint {
+  font-size: 12px;
+  color: var(--dsw-color-error-base, #ef4444);
+}
+
+.importActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btnPrimary {
+  background-color: var(--dsw-color-brand-primary, #4176e6);
+  color: #ffffff;
+  border: none;
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--dsw-radius-sm, 4px);
+  cursor: pointer;
+}
+
+.btnPrimary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dangerZone {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 16px;
+}
+
+.dangerTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--dsw-color-error-base, #ef4444);
+}
+
+.btnDanger {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: var(--dsw-color-error-base, #ef4444);
+  border: 1px solid var(--dsw-color-error-base, #ef4444);
+  padding: 6px 14px;
+  font-size: 13px;
+  border-radius: var(--dsw-radius-sm, 4px);
+  cursor: pointer;
+}
+
+.btnDanger:hover {
+  background-color: rgba(239, 68, 68, 0.25);
+}

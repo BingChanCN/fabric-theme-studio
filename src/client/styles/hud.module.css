@@ -1,0 +1,138 @@
+.hudWrapper {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  font-family: inherit;
+}
+
+.hudPill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-width: 1px;
+  border-style: solid;
+  padding: 8px 14px;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.hudPill:hover {
+  transform: translateY(-2px);
+}
+
+.hudDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.hudPillText {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.hudCard {
+  width: 280px;
+  border-width: 1px;
+  border-style: solid;
+  border-radius: var(--dsw-radius-md, 8px);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hudHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hudTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hudIndicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.hudTitle {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.hudCloseBtn {
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 2px 6px;
+}
+
+.hudStatusRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.presetList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.presetItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-width: 1px;
+  border-style: solid;
+  padding: 6px 10px;
+  border-radius: var(--dsw-radius-sm, 4px);
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: background-color 0.1s ease;
+}
+
+.itemDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.itemName {
+  font-size: 12px;
+  font-weight: 500;
+  flex: 1;
+}
+
+.itemCheck {
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.hudFooter {
+  display: flex;
+  margin-top: 4px;
+}
+
+.btnOpenStudio {
+  border: none;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: var(--dsw-radius-sm, 4px);
+  cursor: pointer;
+  width: 100%;
+  text-align: center;
+}

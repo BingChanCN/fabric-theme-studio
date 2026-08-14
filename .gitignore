@@ -1,0 +1,5 @@
+node_modules
+lib
+.pack-probe
+*.tgz
+.DS_Store
