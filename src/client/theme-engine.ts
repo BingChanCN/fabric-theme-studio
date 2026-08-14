@@ -71,6 +71,27 @@ export function colorToRgba(color: string, alpha: number): string {
   return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${a})`
 }
 
+/** DSH-style status ramp: primary is text, secondary/tertiary are translucent fills. */
+export function deriveStateRamp(color: string, isLight: boolean): {
+  primary: string
+  secondary: string
+  tertiary: string
+} {
+  return {
+    primary: color,
+    secondary: colorToRgba(color, isLight ? 0.16 : 0.24),
+    tertiary: colorToRgba(color, isLight ? 0.12 : 0.18),
+  }
+}
+
+/** Keep a surface token distinct from its foreground when a theme collapsed them. */
+export function distinctSurface(surface: string, foreground: string, isLight: boolean): string {
+  if (surface.trim().toLowerCase() === foreground.trim().toLowerCase()) {
+    return colorToRgba(foreground, isLight ? 0.16 : 0.24)
+  }
+  return surface
+}
+
 /** Calculate relative luminance of an sRGB color per WCAG 2.1 specs. */
 export function calculateLuminance(r: number, g: number, b: number): number {
   const a = [r, g, b].map(v => {
@@ -123,9 +144,17 @@ export function generateTokenDictionary(
     ? colorToRgba(tokens.background.bgBase, dim)
     : tokens.background.bgBase
 
+  const successRamp = deriveStateRamp(tokens.status.success, isLight)
+  const warnRamp = deriveStateRamp(tokens.status.warning, isLight)
+  const errorRamp = deriveStateRamp(tokens.status.error, isLight)
+  const infoRamp = deriveStateRamp(tokens.status.info, isLight)
+  const businessSurface = distinctSurface(tokens.brand.brandSurface, tokens.brand.brandPrimary, isLight)
+
   return {
     // DSH Core Background & Container Aliases
     '--dsw-alias-bg-base': bgBaseValue,
+    '--dsw-alias-bg-elevated': tokens.background.bgElevated,
+    '--dsw-alias-bg-subtle': tokens.background.bgSubtle,
     '--dsw-alias-bg-layer-1': tokens.background.bgElevated,
     '--dsw-alias-bg-layer-2': tokens.background.bgSubtle,
     '--dsw-alias-bg-layer-3': tokens.background.bgSurface,
@@ -202,16 +231,23 @@ export function generateTokenDictionary(
     '--dsw-alias-interactive-bg-active': tokens.brand.brandSurface,
     '--dsw-alias-interactive-bg-hover-solid': tokens.background.bgSurface,
 
-    // Status & Semantic States
+    // Status & Semantic States — primary is text, secondary/tertiary are fills.
     '--dsw-alias-state-business-primary': tokens.brand.brandPrimary,
-    '--dsw-alias-state-business-tertiary': tokens.brand.brandSurface,
-    '--dsw-alias-state-success-primary': tokens.status.success,
-    '--dsw-alias-state-success-secondary': tokens.status.success,
-    '--dsw-alias-state-warn-primary': tokens.status.warning,
-    '--dsw-alias-state-warn-secondary': tokens.status.warning,
+    '--dsw-alias-state-business-secondary': businessSurface,
+    '--dsw-alias-state-business-tertiary': businessSurface,
+    '--dsw-alias-state-success-primary': successRamp.primary,
+    '--dsw-alias-state-success-secondary': successRamp.secondary,
+    '--dsw-alias-state-success-tertiary': successRamp.tertiary,
+    '--dsw-alias-state-warn-primary': warnRamp.primary,
+    '--dsw-alias-state-warn-secondary': warnRamp.secondary,
+    '--dsw-alias-state-warn-tertiary': warnRamp.tertiary,
     '--dsw-alias-state-warn-label': tokens.status.warning,
-    '--dsw-alias-state-error-primary': tokens.status.error,
-    '--dsw-alias-state-error-secondary': tokens.status.error,
+    '--dsw-alias-state-error-primary': errorRamp.primary,
+    '--dsw-alias-state-error-secondary': errorRamp.secondary,
+    '--dsw-alias-state-error-tertiary': errorRamp.tertiary,
+    '--dsw-alias-state-info-primary': infoRamp.primary,
+    '--dsw-alias-state-info-secondary': infoRamp.secondary,
+    '--dsw-alias-state-info-tertiary': infoRamp.tertiary,
 
     // Static DeepSeek & Bluish Palette Overrides
     '--dsw-static-deepseek-500': tokens.brand.brandPrimary,

@@ -4,6 +4,8 @@ import {
   calculateContrastRatio,
   calculateLuminance,
   colorToRgba,
+  deriveStateRamp,
+  distinctSurface,
   evaluateContrastGrade,
   generateCssVariables,
   generateTokenDictionary,
@@ -53,6 +55,41 @@ describe('Color & Contrast Mathematics', () => {
     expect(evaluateContrastGrade(5.0)).toBe('AA')
     expect(evaluateContrastGrade(3.5)).toBe('Pass')
     expect(evaluateContrastGrade(2.0)).toBe('Fail')
+  })
+})
+
+describe('State ramps and surface pairing', () => {
+  it('derives translucent fills that are not the solid primary', () => {
+    const dark = deriveStateRamp('rgb(34, 197, 94)', false)
+    expect(dark.primary).toBe('rgb(34, 197, 94)')
+    expect(dark.secondary).toBe('rgba(34, 197, 94, 0.24)')
+    expect(dark.tertiary).toBe('rgba(34, 197, 94, 0.18)')
+    expect(dark.primary).not.toBe(dark.secondary)
+    expect(dark.primary).not.toBe(dark.tertiary)
+
+    const light = deriveStateRamp('#059669', true)
+    expect(light.secondary).toBe('rgba(5, 150, 105, 0.16)')
+    expect(light.tertiary).toBe('rgba(5, 150, 105, 0.12)')
+  })
+
+  it('replaces a collapsed surface with a tinted fill', () => {
+    expect(distinctSurface('#22c55e', '#22c55e', false)).toBe('rgba(34, 197, 94, 0.24)')
+    expect(distinctSurface('rgba(65, 118, 230, 0.15)', 'rgb(65, 118, 230)', false)).toBe(
+      'rgba(65, 118, 230, 0.15)',
+    )
+  })
+
+  it('emits distinct chip fg/bg tokens and maps bg-subtle for fabric Badge', () => {
+    const dict = generateTokenDictionary(DEEPSEEK_CLASSIC.tokens, DEEPSEEK_CLASSIC.material, false)
+    expect(dict['--dsw-alias-bg-subtle']).toBe(DEEPSEEK_CLASSIC.tokens.background.bgSubtle)
+    expect(dict['--dsw-alias-bg-elevated']).toBe(DEEPSEEK_CLASSIC.tokens.background.bgElevated)
+    expect(dict['--dsw-alias-label-secondary']).not.toBe(dict['--dsw-alias-bg-subtle'])
+    expect(dict['--dsw-alias-state-success-primary']).not.toBe(dict['--dsw-alias-state-success-secondary'])
+    expect(dict['--dsw-alias-state-success-primary']).not.toBe(dict['--dsw-alias-state-success-tertiary'])
+    expect(dict['--dsw-alias-state-warn-primary']).not.toBe(dict['--dsw-alias-state-warn-secondary'])
+    expect(dict['--dsw-alias-state-error-primary']).not.toBe(dict['--dsw-alias-state-error-secondary'])
+    expect(dict['--dsw-alias-state-business-primary']).not.toBe(dict['--dsw-alias-state-business-tertiary'])
+    expect(dict['--dsw-alias-state-info-primary']).not.toBe(dict['--dsw-alias-state-info-tertiary'])
   })
 })
 
