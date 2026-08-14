@@ -12,36 +12,42 @@
   gap: 8px;
   border-width: 1px;
   border-style: solid;
-  padding: 8px 14px;
+  padding: 8px 16px;
   border-radius: 9999px;
   cursor: pointer;
+  box-shadow: var(--dsw-shadow-md, 0 4px 14px rgba(0, 0, 0, 0.3));
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .hudPill:hover {
   transform: translateY(-2px);
+  box-shadow: var(--dsw-shadow-lg, 0 8px 20px rgba(0, 0, 0, 0.4));
 }
 
+.pillDot,
 .hudDot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
+  box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.2);
 }
 
+.pillText,
 .hudPillText {
   font-size: 13px;
   font-weight: 600;
 }
 
 .hudCard {
-  width: 280px;
+  width: 300px;
   border-width: 1px;
   border-style: solid;
-  border-radius: var(--dsw-radius-md, 8px);
+  border-radius: var(--dsw-radius-md, 10px);
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  box-shadow: var(--dsw-shadow-lg, 0 10px 30px rgba(0, 0, 0, 0.4));
 }
 
 .hudHeader {
@@ -57,8 +63,8 @@
 }
 
 .hudIndicator {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
 }
 
@@ -73,6 +79,12 @@
   font-size: 14px;
   cursor: pointer;
   padding: 2px 6px;
+  opacity: 0.7;
+  transition: opacity 0.15s ease;
+}
+
+.hudCloseBtn:hover {
+  opacity: 1;
 }
 
 .hudStatusRow {
@@ -85,8 +97,9 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  max-height: 200px;
+  max-height: 220px;
   overflow-y: auto;
+  padding-right: 4px;
 }
 
 .presetItem {
@@ -95,17 +108,26 @@
   gap: 8px;
   border-width: 1px;
   border-style: solid;
-  padding: 6px 10px;
-  border-radius: var(--dsw-radius-sm, 4px);
+  padding: 7px 10px;
+  border-radius: var(--dsw-radius-sm, 6px);
   cursor: pointer;
   width: 100%;
   text-align: left;
-  transition: background-color 0.1s ease;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+  box-sizing: border-box;
+}
+
+.presetItem:hover {
+  transform: translateX(2px);
+}
+
+.presetItemActive {
+  font-weight: 600;
 }
 
 .itemDot {
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -117,22 +139,29 @@
 }
 
 .itemCheck {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: bold;
+  color: var(--dsw-alias-state-success-primary, #22c55e);
 }
 
 .hudFooter {
   display: flex;
-  margin-top: 4px;
+  justify-content: flex-end;
+  padding-top: 4px;
 }
 
 .btnOpenStudio {
+  background: transparent;
   border: none;
-  padding: 8px 12px;
   font-size: 12px;
   font-weight: 500;
-  border-radius: var(--dsw-radius-sm, 4px);
   cursor: pointer;
-  width: 100%;
-  text-align: center;
+  padding: 4px 8px;
+  border-radius: var(--dsw-radius-sm, 4px);
+  transition: opacity 0.15s ease;
+}
+
+.btnOpenStudio:hover {
+  opacity: 0.8;
+  text-decoration: underline;
 }
