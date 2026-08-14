@@ -6,13 +6,30 @@ import { useThemeStudio } from '../theme-engine.ts'
 import styles from '../styles/settings.module.css'
 
 export function ThemeSettings(props: FabricSettingsProps) {
-  const { activeTheme, allThemes, customThemes, setActiveTheme, saveCustomTheme, resetAll } = useThemeStudio()
+  const {
+    activeTheme,
+    allThemes,
+    customThemes,
+    autoFollowSystem,
+    setAutoFollowSystem,
+    setActiveTheme,
+    saveCustomTheme,
+    resetAll,
+  } = useThemeStudio()
   const [importJson, setImportJson] = useState('')
   const [importError, setImportError] = useState<string | null>(null)
 
   const handleSelectDefault = (id: string) => {
     setActiveTheme(id)
     props.notify('默认主题设置已更新', { tone: 'success' })
+  }
+
+  const handleToggleAutoFollow = (enabled: boolean) => {
+    setAutoFollowSystem(enabled)
+    props.notify(
+      enabled ? '已启用系统外观自动跟随（暗色/亮色自动切换）' : '已停用系统外观自动跟随',
+      { tone: 'info' },
+    )
   }
 
   const handleExportAll = () => {
@@ -54,6 +71,28 @@ export function ThemeSettings(props: FabricSettingsProps) {
   return (
     <div className={styles.settingsContainer}>
       <Section title="主题偏好设置 (Theme Studio Settings)" description="配置 Fabric Theme Studio 默认主题与导入导出">
+        {/* Auto Follow System Preference */}
+        <div className={styles.settingRow}>
+          <div className={styles.settingLabelGroup}>
+            <span className={styles.settingTitle}>跟随操作系统深浅色模式</span>
+            <span className={styles.settingDesc}>
+              基于 Fabric Theme Bridge 自动监听 OS prefers-color-scheme，在深浅色间自动流转
+            </span>
+          </div>
+          <label style={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer', gap: '8px' }}>
+            <input
+              type="checkbox"
+              checked={autoFollowSystem}
+              onChange={e => handleToggleAutoFollow(e.target.checked)}
+              style={{ width: '16px', height: '16px', accentColor: 'var(--dsw-alias-brand-primary)' }}
+            />
+            <span style={{ fontSize: '13px', color: 'var(--dsw-alias-label-primary)' }}>
+              {autoFollowSystem ? '已开启' : '已关闭'}
+            </span>
+          </label>
+        </div>
+
+        {/* Default Startup Theme */}
         <div className={styles.settingRow}>
           <div className={styles.settingLabelGroup}>
             <span className={styles.settingTitle}>默认启动主题</span>
@@ -62,6 +101,7 @@ export function ThemeSettings(props: FabricSettingsProps) {
           <select
             className={styles.settingSelect}
             value={activeTheme.id}
+            disabled={autoFollowSystem}
             onChange={e => handleSelectDefault(e.target.value)}
           >
             {allThemes.map(t => (
@@ -72,6 +112,7 @@ export function ThemeSettings(props: FabricSettingsProps) {
           </select>
         </div>
 
+        {/* Custom Themes Counter */}
         <div className={styles.settingRow}>
           <div className={styles.settingLabelGroup}>
             <span className={styles.settingTitle}>自定义主题数量</span>
@@ -89,6 +130,7 @@ export function ThemeSettings(props: FabricSettingsProps) {
           </div>
         </div>
 
+        {/* Export JSON */}
         <div className={styles.settingRow}>
           <div className={styles.settingLabelGroup}>
             <span className={styles.settingTitle}>导出主题数据</span>
@@ -99,6 +141,7 @@ export function ThemeSettings(props: FabricSettingsProps) {
           </button>
         </div>
 
+        {/* Import JSON */}
         <div className={styles.importBlock}>
           <span className={styles.settingTitle}>导入外部主题 JSON</span>
           <textarea
@@ -118,17 +161,10 @@ export function ThemeSettings(props: FabricSettingsProps) {
             >
               导入并应用
             </button>
+            <button type="button" className={styles.btnDanger} onClick={handleReset}>
+              清空自定义主题并重置
+            </button>
           </div>
-        </div>
-
-        <div className={styles.dangerZone}>
-          <div className={styles.settingLabelGroup}>
-            <span className={styles.dangerTitle}>危险操作区</span>
-            <span className={styles.settingDesc}>清空全部自定义主题并恢复为官方默认设置</span>
-          </div>
-          <button type="button" className={styles.btnDanger} onClick={handleReset}>
-            重置所有主题数据
-          </button>
         </div>
       </Section>
     </div>

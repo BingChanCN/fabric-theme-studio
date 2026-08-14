@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { FabricPageProps } from 'fabric/client'
-import { Badge, Page, PageHeader, Section, ToolbarButton } from 'fabric/ui'
+import { Badge, Modal, Page, PageHeader, Popover, Section, ToolbarButton } from 'fabric/ui'
 import type { ThemeCategory, ThemeDefinition, ThemeTokens } from '../../types.ts'
 import { calculateContrastRatio, evaluateContrastGrade, useThemeStudio } from '../theme-engine.ts'
 import styles from '../styles/studio.module.css'
@@ -56,26 +56,26 @@ export function TokenStudio(props: FabricPageProps) {
 
   const handleCopyCss = () => {
     const cssVars = Object.entries(draft.tokens.background)
-      .map(([k, v]) => `  --dsw-color-${k.replace(/([A-Z])/g, '-$1').toLowerCase()}: ${v};`)
+      .map(([k, v]) => `  --dsw-alias-${k.replace(/([A-Z])/g, '-$1').toLowerCase()}: ${v};`)
       .concat(
         Object.entries(draft.tokens.text).map(
-          ([k, v]) => `  --dsw-color-${k.replace(/([A-Z])/g, '-$1').toLowerCase()}: ${v};`,
+          ([k, v]) => `  --dsw-alias-${k.replace(/([A-Z])/g, '-$1').toLowerCase()}: ${v};`,
         ),
       )
       .concat(
         Object.entries(draft.tokens.brand).map(
-          ([k, v]) => `  --dsw-color-${k.replace(/([A-Z])/g, '-$1').toLowerCase()}: ${v};`,
+          ([k, v]) => `  --dsw-alias-${k.replace(/([A-Z])/g, '-$1').toLowerCase()}: ${v};`,
         ),
       )
       .concat(
         Object.entries(draft.tokens.status).map(
-          ([k, v]) => `  --dsw-color-${k.replace(/([A-Z])/g, '-$1').toLowerCase()}: ${v};`,
+          ([k, v]) => `  --dsw-alias-${k.replace(/([A-Z])/g, '-$1').toLowerCase()}: ${v};`,
         ),
       )
       .join('\n')
 
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
-      void navigator.clipboard.writeText(`:root {\n${cssVars}\n}`)
+      void navigator.clipboard.writeText(`:root, body {\n${cssVars}\n}`)
       props.notify('CSS 变量已复制到剪贴板', { tone: 'info' })
     }
   }
@@ -119,332 +119,300 @@ export function TokenStudio(props: FabricPageProps) {
               className={styles.btnSavePrimary}
               onClick={() => setShowSaveModal(true)}
             >
-              保存为新主题
+              另存为新主题
             </button>
           </div>
         }
       />
 
-      <div className={styles.studioLayout}>
-        {/* Left Column: Token Editors */}
-        <div className={styles.editorColumn}>
-          {/* Section: Base Properties */}
-          <Section title="主题元信息" description="设置主题的基础分类与描述">
-            <div className={styles.formRow}>
-              <label className={styles.fieldLabel}>主题名称</label>
-              <input
-                type="text"
-                className={styles.textInput}
-                value={draft.name}
-                onChange={e => setDraft(d => ({ ...d, name: e.target.value }))}
+      {/* Realtime Live Preview Card */}
+      <Section title="实时预览看板" description="微调 Token 会立即在此看板以及整个宿主界面中实时渲染生效">
+        <div
+          className={styles.previewCard}
+          style={{
+            backgroundColor: draft.tokens.background.bgElevated,
+            borderColor: draft.tokens.border.borderBase,
+            borderRadius: draft.tokens.shape.radiusMd,
+            boxShadow: draft.tokens.shape.shadowMd,
+          }}
+        >
+          <div className={styles.previewCardHeader}>
+            <div className={styles.previewCardTitleGroup}>
+              <span
+                className={styles.previewIndicator}
+                style={{ backgroundColor: draft.tokens.brand.brandPrimary }}
               />
-            </div>
-            <div className={styles.formRow}>
-              <label className={styles.fieldLabel}>色彩分类</label>
-              <select
-                className={styles.selectInput}
-                value={draft.category}
-                onChange={e => setDraft(d => ({ ...d, category: e.target.value as ThemeCategory }))}
+              <span
+                className={styles.previewTitle}
+                style={{ color: draft.tokens.text.textPrimary }}
               >
-                <option value="dark">深色 (Dark)</option>
-                <option value="light">浅色 (Light)</option>
-                <option value="special">特色 (Special)</option>
-              </select>
+                {draft.name} (草稿模式)
+              </span>
             </div>
-          </Section>
-
-          {/* Section: Background & Surfaces */}
-          <Section title="背景与容器表面 (Backgrounds)" description="控制底色、浮层与卡片表面的阶梯明度">
-            <div className={styles.tokenGrid}>
-              {[
-                { label: '基础底色 (bgBase)', key: 'bgBase' as const },
-                { label: '提升层级 (bgElevated)', key: 'bgElevated' as const },
-                { label: '次级微弱底色 (bgSubtle)', key: 'bgSubtle' as const },
-                { label: '卡片表面 (bgSurface)', key: 'bgSurface' as const },
-                { label: '下沉凹陷区 (bgSunken)', key: 'bgSunken' as const },
-              ].map(item => (
-                <div key={item.key} className={styles.colorField}>
-                  <span className={styles.colorLabel}>{item.label}</span>
-                  <div className={styles.colorInputGroup}>
-                    <input
-                      type="color"
-                      className={styles.colorPicker}
-                      value={draft.tokens.background[item.key].startsWith('#') ? draft.tokens.background[item.key] : '#222222'}
-                      onChange={e => updateToken('background', item.key, e.target.value)}
-                    />
-                    <input
-                      type="text"
-                      className={styles.colorText}
-                      value={draft.tokens.background[item.key]}
-                      onChange={e => updateToken('background', item.key, e.target.value)}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Section>
-
-          {/* Section: Typography */}
-          <Section title="文本阶梯 (Typography)" description="各级正文、副标、辅助与禁用文字色彩">
-            <div className={styles.tokenGrid}>
-              {[
-                { label: '主要文本 (textPrimary)', key: 'textPrimary' as const },
-                { label: '次要文本 (textSecondary)', key: 'textSecondary' as const },
-                { label: '辅助弱化文本 (textTertiary)', key: 'textTertiary' as const },
-                { label: '禁用文本 (textDisabled)', key: 'textDisabled' as const },
-              ].map(item => (
-                <div key={item.key} className={styles.colorField}>
-                  <span className={styles.colorLabel}>{item.label}</span>
-                  <div className={styles.colorInputGroup}>
-                    <input
-                      type="color"
-                      className={styles.colorPicker}
-                      value={draft.tokens.text[item.key].startsWith('#') ? draft.tokens.text[item.key] : '#ffffff'}
-                      onChange={e => updateToken('text', item.key, e.target.value)}
-                    />
-                    <input
-                      type="text"
-                      className={styles.colorText}
-                      value={draft.tokens.text[item.key]}
-                      onChange={e => updateToken('text', item.key, e.target.value)}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Section>
-
-          {/* Section: Brand & Accent */}
-          <Section title="品牌与重点色 (Brand & Accent)" description="主按钮、活动指示器与发光高亮">
-            <div className={styles.tokenGrid}>
-              {[
-                { label: '品牌主色 (brandPrimary)', key: 'brandPrimary' as const },
-                { label: '品牌悬停色 (brandHover)', key: 'brandHover' as const },
-                { label: '强调色 (accentPrimary)', key: 'accentPrimary' as const },
-                { label: '强调色悬停 (accentHover)', key: 'accentHover' as const },
-              ].map(item => (
-                <div key={item.key} className={styles.colorField}>
-                  <span className={styles.colorLabel}>{item.label}</span>
-                  <div className={styles.colorInputGroup}>
-                    <input
-                      type="color"
-                      className={styles.colorPicker}
-                      value={
-                        item.key.startsWith('brand')
-                          ? (draft.tokens.brand[item.key as keyof typeof draft.tokens.brand].startsWith('#')
-                            ? draft.tokens.brand[item.key as keyof typeof draft.tokens.brand]
-                            : '#4176e6')
-                          : (draft.tokens.accent[item.key as keyof typeof draft.tokens.accent].startsWith('#')
-                            ? draft.tokens.accent[item.key as keyof typeof draft.tokens.accent]
-                            : '#60a5fa')
-                      }
-                      onChange={e => {
-                        if (item.key.startsWith('brand')) {
-                          updateToken('brand', item.key as any, e.target.value)
-                        } else {
-                          updateToken('accent', item.key as any, e.target.value)
-                        }
-                      }}
-                    />
-                    <input
-                      type="text"
-                      className={styles.colorText}
-                      value={
-                        item.key.startsWith('brand')
-                          ? draft.tokens.brand[item.key as keyof typeof draft.tokens.brand]
-                          : draft.tokens.accent[item.key as keyof typeof draft.tokens.accent]
-                      }
-                      onChange={e => {
-                        if (item.key.startsWith('brand')) {
-                          updateToken('brand', item.key as any, e.target.value)
-                        } else {
-                          updateToken('accent', item.key as any, e.target.value)
-                        }
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Section>
-
-          {/* Section: Status Tones */}
-          <Section title="状态指示色 (Status Tones)" description="成功、警告、错误与通知信息色">
-            <div className={styles.tokenGrid}>
-              {[
-                { label: '成功 (Success)', key: 'success' as const },
-                { label: '警告 (Warning)', key: 'warning' as const },
-                { label: '错误 (Error)', key: 'error' as const },
-                { label: '信息 (Info)', key: 'info' as const },
-              ].map(item => (
-                <div key={item.key} className={styles.colorField}>
-                  <span className={styles.colorLabel}>{item.label}</span>
-                  <div className={styles.colorInputGroup}>
-                    <input
-                      type="color"
-                      className={styles.colorPicker}
-                      value={draft.tokens.status[item.key].startsWith('#') ? draft.tokens.status[item.key] : '#22c55e'}
-                      onChange={e => updateToken('status', item.key, e.target.value)}
-                    />
-                    <input
-                      type="text"
-                      className={styles.colorText}
-                      value={draft.tokens.status[item.key]}
-                      onChange={e => updateToken('status', item.key, e.target.value)}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Section>
-
-          {/* Section: Shapes & Radii */}
-          <Section title="圆角与轮廓 (Shape & Radius)" description="微调交互控件与卡片的边角弧度">
-            <div className={styles.tokenGrid}>
-              {[
-                { label: '小圆角 (radiusSm)', key: 'radiusSm' as const },
-                { label: '中圆角 (radiusMd)', key: 'radiusMd' as const },
-                { label: '大圆角 (radiusLg)', key: 'radiusLg' as const },
-              ].map(item => (
-                <div key={item.key} className={styles.formRow}>
-                  <label className={styles.fieldLabel}>{item.label}</label>
-                  <input
-                    type="text"
-                    className={styles.textInput}
-                    value={draft.tokens.shape[item.key]}
-                    onChange={e => updateToken('shape', item.key, e.target.value)}
-                  />
-                </div>
-              ))}
-            </div>
-          </Section>
-        </div>
-
-        {/* Right Column: Real-time Live Preview */}
-        <div className={styles.previewColumn}>
-          <div className={styles.stickyPreview}>
-            <h3 className={styles.previewHeading}>实时渲染视图</h3>
-
-            {/* Contrast Meter Card */}
-            <div
-              className={styles.contrastCard}
-              style={{
-                backgroundColor: draft.tokens.background.bgElevated,
-                borderColor: draft.tokens.border.borderBase,
-              }}
-            >
-              <div className={styles.contrastHeader}>
-                <span style={{ color: draft.tokens.text.textSecondary }}>WCAG 2.1 对比度评级</span>
-                <Badge tone={contrastGrade === 'AAA' ? 'success' : contrastGrade === 'AA' ? 'info' : 'warning'}>
-                  {contrastGrade} ({contrastRatio}:1)
-                </Badge>
-              </div>
-              <p className={styles.contrastText} style={{ color: draft.tokens.text.textTertiary }}>
-                {contrastRatio >= 7.0
-                  ? '✓ 达到 AAA 顶级无障碍可读性标准'
-                  : contrastRatio >= 4.5
-                    ? '✓ 达到 AA 标准，常规文本清晰易读'
-                    : '⚠ 对比度偏低，建议提升文本亮度或加深底色'}
-              </p>
-            </div>
-
-            {/* Mock Fabric Card Preview */}
-            <div
-              className={styles.mockCard}
-              style={{
-                backgroundColor: draft.tokens.background.bgElevated,
-                borderColor: draft.tokens.border.borderBase,
-                borderRadius: draft.tokens.shape.radiusMd,
-                boxShadow: draft.tokens.shape.shadowMd,
-              }}
-            >
-              <div className={styles.mockHeader}>
-                <h4 style={{ color: draft.tokens.text.textPrimary }}>{draft.name}</h4>
-                <Badge tone="info">Fabric Preview</Badge>
-              </div>
-              <p style={{ color: draft.tokens.text.textSecondary, fontSize: '13px' }}>
-                这是在当前调色盘配置下渲染的卡片示例。实时反映文字阶梯、表面颜色和边框效果。
-              </p>
-
-              <div className={styles.mockButtons}>
-                <button
-                  type="button"
-                  className={styles.mockBtnPrimary}
-                  style={{
-                    backgroundColor: draft.tokens.brand.brandPrimary,
-                    borderRadius: draft.tokens.shape.radiusSm,
-                    color: '#ffffff',
-                  }}
-                >
-                  主品牌按钮
-                </button>
-                <button
-                  type="button"
-                  className={styles.mockBtnSecondary}
-                  style={{
-                    backgroundColor: draft.tokens.background.bgSurface,
-                    color: draft.tokens.text.textPrimary,
-                    borderColor: draft.tokens.border.borderBase,
-                    borderRadius: draft.tokens.shape.radiusSm,
-                  }}
-                >
-                  次级操作
-                </button>
-              </div>
-
-              <div className={styles.mockBadgeStrip}>
-                <Badge tone="success">运行正常</Badge>
-                <Badge tone="warning">待处理</Badge>
-                <Badge tone="error">异常告警</Badge>
-                <Badge tone="neutral">就绪</Badge>
-              </div>
+            <div className={styles.previewBadges}>
+              <Badge tone={contrastGrade === 'AAA' ? 'success' : contrastGrade === 'AA' ? 'info' : 'warning'}>
+                WCAG {contrastGrade} ({contrastRatio}:1)
+              </Badge>
+              <Badge tone="neutral">{draft.category.toUpperCase()}</Badge>
             </div>
           </div>
+
+          <p
+            className={styles.previewDesc}
+            style={{ color: draft.tokens.text.textSecondary }}
+          >
+            {draft.description}
+          </p>
+
+          <div className={styles.previewControls}>
+            <button
+              type="button"
+              className={styles.previewBtnPrimary}
+              style={{
+                backgroundColor: draft.tokens.brand.brandPrimary,
+                borderRadius: draft.tokens.shape.radiusSm,
+                color: '#ffffff',
+              }}
+            >
+              主按钮 (Primary)
+            </button>
+            <button
+              type="button"
+              className={styles.previewBtnSurface}
+              style={{
+                backgroundColor: draft.tokens.brand.brandSurface,
+                color: draft.tokens.brand.brandText,
+                borderColor: draft.tokens.brand.brandPrimary,
+                borderRadius: draft.tokens.shape.radiusSm,
+              }}
+            >
+              浅色强调 (Surface)
+            </button>
+            <span
+              className={styles.previewTag}
+              style={{
+                backgroundColor: draft.tokens.background.bgSubtle,
+                color: draft.tokens.text.textTertiary,
+                borderRadius: draft.tokens.shape.radiusSm,
+              }}
+            >
+              Subtle Tag
+            </span>
+          </div>
         </div>
+      </Section>
+
+      {/* Token Groups Editor Grid */}
+      <div className={styles.editorGrid}>
+        {/* Background Group */}
+        <Section title="背景与层级 (Backgrounds)" description="控制窗口、卡片、侧边栏及深陷容器底色">
+          <div className={styles.tokenGroup}>
+            <TokenInput
+              label="bgBase (应用主背景)"
+              value={draft.tokens.background.bgBase}
+              onChange={v => updateToken('background', 'bgBase', v)}
+            />
+            <TokenInput
+              label="bgElevated (卡片/弹窗抬升)"
+              value={draft.tokens.background.bgElevated}
+              onChange={v => updateToken('background', 'bgElevated', v)}
+            />
+            <TokenInput
+              label="bgSubtle (次级容器背景)"
+              value={draft.tokens.background.bgSubtle}
+              onChange={v => updateToken('background', 'bgSubtle', v)}
+            />
+            <TokenInput
+              label="bgSurface (悬浮激活背景)"
+              value={draft.tokens.background.bgSurface}
+              onChange={v => updateToken('background', 'bgSurface', v)}
+            />
+            <TokenInput
+              label="bgSunken (输入框/凹陷底色)"
+              value={draft.tokens.background.bgSunken}
+              onChange={v => updateToken('background', 'bgSunken', v)}
+            />
+          </div>
+        </Section>
+
+        {/* Text Group */}
+        <Section title="文字阶梯 (Typography)" description="各级文字层级的颜色与明暗对比">
+          <div className={styles.tokenGroup}>
+            <TokenInput
+              label="textPrimary (主要文本)"
+              value={draft.tokens.text.textPrimary}
+              onChange={v => updateToken('text', 'textPrimary', v)}
+            />
+            <TokenInput
+              label="textSecondary (次要副标题)"
+              value={draft.tokens.text.textSecondary}
+              onChange={v => updateToken('text', 'textSecondary', v)}
+            />
+            <TokenInput
+              label="textTertiary (弱化说明文字)"
+              value={draft.tokens.text.textTertiary}
+              onChange={v => updateToken('text', 'textTertiary', v)}
+            />
+            <TokenInput
+              label="textDisabled (禁用状态文字)"
+              value={draft.tokens.text.textDisabled}
+              onChange={v => updateToken('text', 'textDisabled', v)}
+            />
+          </div>
+        </Section>
+
+        {/* Brand Group */}
+        <Section title="品牌与焦点色 (Brand & Focus)" description="主交互控件、高亮标识及光标选中色">
+          <div className={styles.tokenGroup}>
+            <TokenInput
+              label="brandPrimary (品牌主色)"
+              value={draft.tokens.brand.brandPrimary}
+              onChange={v => updateToken('brand', 'brandPrimary', v)}
+            />
+            <TokenInput
+              label="brandHover (主色悬停态)"
+              value={draft.tokens.brand.brandHover}
+              onChange={v => updateToken('brand', 'brandHover', v)}
+            />
+            <TokenInput
+              label="brandActive (主色激活态)"
+              value={draft.tokens.brand.brandActive}
+              onChange={v => updateToken('brand', 'brandActive', v)}
+            />
+            <TokenInput
+              label="brandSurface (浅色强调表面)"
+              value={draft.tokens.brand.brandSurface}
+              onChange={v => updateToken('brand', 'brandSurface', v)}
+            />
+            <TokenInput
+              label="brandText (强调文本色)"
+              value={draft.tokens.brand.brandText}
+              onChange={v => updateToken('brand', 'brandText', v)}
+            />
+          </div>
+        </Section>
+
+        {/* Border & Status Group */}
+        <Section title="边框与状态色 (Borders & Status)" description="分割线与语义状态反馈色">
+          <div className={styles.tokenGroup}>
+            <TokenInput
+              label="borderBase (标准边框)"
+              value={draft.tokens.border.borderBase}
+              onChange={v => updateToken('border', 'borderBase', v)}
+            />
+            <TokenInput
+              label="borderSubtle (微弱分割线)"
+              value={draft.tokens.border.borderSubtle}
+              onChange={v => updateToken('border', 'borderSubtle', v)}
+            />
+            <TokenInput
+              label="borderFocus (聚焦边框)"
+              value={draft.tokens.border.borderFocus}
+              onChange={v => updateToken('border', 'borderFocus', v)}
+            />
+            <TokenInput
+              label="status.success (成功绿)"
+              value={draft.tokens.status.success}
+              onChange={v => updateToken('status', 'success', v)}
+            />
+            <TokenInput
+              label="status.warning (警告橙)"
+              value={draft.tokens.status.warning}
+              onChange={v => updateToken('status', 'warning', v)}
+            />
+            <TokenInput
+              label="status.error (危险红)"
+              value={draft.tokens.status.error}
+              onChange={v => updateToken('status', 'error', v)}
+            />
+          </div>
+        </Section>
       </div>
 
-      {/* Save Modal Dialog */}
-      {showSaveModal && (
-        <div className={styles.modalBackdrop}>
-          <div
-            className={styles.modalCard}
-            style={{
-              backgroundColor: draft.tokens.background.bgElevated,
-              borderColor: draft.tokens.border.borderFocus,
-            }}
-          >
-            <h3 style={{ color: draft.tokens.text.textPrimary }}>保存为自定义主题</h3>
-            <p style={{ color: draft.tokens.text.textSecondary, fontSize: '13px' }}>
-              请输入主题名称，保存后将可在「主题工坊」中随时选用或再次编辑。
-            </p>
-            <input
-              type="text"
-              placeholder={`例如：${draft.name} (Custom)`}
-              className={styles.modalInput}
-              value={saveName}
-              onChange={e => setSaveName(e.target.value)}
-              autoFocus
-            />
-            <div className={styles.modalActions}>
-              <button
-                type="button"
-                className={styles.modalBtnCancel}
-                onClick={() => setShowSaveModal(false)}
-              >
-                取消
-              </button>
-              <button
-                type="button"
-                className={styles.modalBtnConfirm}
-                style={{ backgroundColor: draft.tokens.brand.brandPrimary, color: '#ffffff' }}
-                onClick={handleSave}
-              >
-                确认保存并激活
-              </button>
-            </div>
+      {/* Modal using Fabric v0.2.0 Modal primitive */}
+      <Modal
+        open={showSaveModal}
+        onClose={() => setShowSaveModal(false)}
+        title="另存为自定义主题"
+        description="将当前微调的所有 Token 打包存入本地库，可随时在画廊中切换使用"
+        footer={
+          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+            <button
+              type="button"
+              className={styles.modalBtnCancel}
+              onClick={() => setShowSaveModal(false)}
+            >
+              取消
+            </button>
+            <button
+              type="button"
+              className={styles.modalBtnConfirm}
+              onClick={handleSave}
+            >
+              确认保存
+            </button>
+          </div>
+        }
+      >
+        <div className={styles.modalField}>
+          <label className={styles.modalLabel}>主题名称</label>
+          <input
+            type="text"
+            placeholder="输入自定义主题名称..."
+            className={styles.modalInput}
+            value={saveName}
+            onChange={e => setSaveName(e.target.value)}
+            autoFocus
+          />
+        </div>
+        <div className={styles.modalField}>
+          <label className={styles.modalLabel}>当前基线主题</label>
+          <div style={{ color: 'var(--dsw-alias-label-secondary)', fontSize: '13px' }}>
+            {draft.name} ({draft.category})
           </div>
         </div>
-      )}
+      </Modal>
     </Page>
   )
+}
+
+function TokenInput(props: { label: string; value: string; onChange: (val: string) => void }) {
+  return (
+    <div className={styles.tokenRow}>
+      <label className={styles.tokenLabel}>{props.label}</label>
+      <div className={styles.tokenInputGroup}>
+        <input
+          type="text"
+          className={styles.tokenInput}
+          value={props.value}
+          onChange={e => props.onChange(e.target.value)}
+        />
+        <input
+          type="color"
+          className={styles.colorPickerNative}
+          title="选择颜色"
+          value={parseRgbToHex(props.value)}
+          onChange={e => props.onChange(e.target.value)}
+        />
+      </div>
+    </div>
+  )
+}
+
+function parseRgbToHex(color: string): string {
+  const trimmed = color.trim().toLowerCase()
+  if (trimmed.startsWith('#')) {
+    if (trimmed.length === 4) {
+      return `#${trimmed[1]}${trimmed[1]}${trimmed[2]}${trimmed[2]}${trimmed[3]}${trimmed[3]}`
+    }
+    if (trimmed.length === 7) return trimmed
+  }
+  const match = trimmed.match(/^rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/)
+  if (match) {
+    const r = Number.parseInt(match[1]!, 10).toString(16).padStart(2, '0')
+    const g = Number.parseInt(match[2]!, 10).toString(16).padStart(2, '0')
+    const b = Number.parseInt(match[3]!, 10).toString(16).padStart(2, '0')
+    return `#${r}${g}${b}`
+  }
+  return '#000000'
 }

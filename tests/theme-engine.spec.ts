@@ -1,4 +1,5 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { FabricThemeService } from 'fabric/client'
 import {
   calculateContrastRatio,
   calculateLuminance,
@@ -7,7 +8,7 @@ import {
   parseColorToRgb,
   ThemeStudioEngine,
 } from '../src/client/theme-engine.ts'
-import { CYBERPUNK_NEON, DEEPSEEK_CLASSIC, NORD_AURORA } from '../src/presets.ts'
+import { CYBERPUNK_NEON, DEEPSEEK_CLASSIC, NORD_AURORA, SOLARIZED_LIGHT } from '../src/presets.ts'
 import type { ThemeDefinition } from '../src/types.ts'
 
 describe('Color & Contrast Mathematics', () => {
@@ -65,10 +66,25 @@ describe('CSS Variable Generation', () => {
   })
 })
 
-describe('ThemeStudioEngine State Management', () => {
+describe('ThemeStudioEngine State Management & Fabric Bridge', () => {
   let engine: ThemeStudioEngine
+  let mockThemeService: FabricThemeService
+  let themeChangeListener: ((t: { dark: boolean }) => void) | undefined
 
   beforeEach(() => {
+    themeChangeListener = undefined
+    mockThemeService = {
+      setTokens: vi.fn(() => () => {}),
+      clearTokens: vi.fn(),
+      getTokens: vi.fn(() => ({})),
+      onThemeChange: vi.fn((listener) => {
+        themeChangeListener = listener
+        return () => {
+          themeChangeListener = undefined
+        }
+      }),
+      isDark: vi.fn(() => true),
+    }
     engine = new ThemeStudioEngine()
   })
 
@@ -77,11 +93,19 @@ describe('ThemeStudioEngine State Management', () => {
     expect(engine.getActiveTheme().name).toBe(DEEPSEEK_CLASSIC.name)
   })
 
-  it('switches active theme to another preset', () => {
+  it('switches active theme to another preset and pushes tokens to FabricThemeService', () => {
+    engine.init(mockThemeService)
     const success = engine.setActiveTheme(NORD_AURORA.id)
     expect(success).toBe(true)
     expect(engine.getActiveThemeId()).toBe(NORD_AURORA.id)
     expect(engine.getActiveTheme().name).toBe(NORD_AURORA.name)
+    expect(mockThemeService.setTokens).toHaveBeenCalledWith(
+      'fabric-theme-studio',
+      expect.objectContaining({
+        '--dsw-alias-bg-base': NORD_AURORA.tokens.background.bgBase,
+      }),
+      expect.objectContaining({ priority: 100, scope: 'global' }),
+    )
   })
 
   it('notifies subscribers on theme change', () => {
@@ -141,5 +165,32 @@ describe('ThemeStudioEngine State Management', () => {
     engine.resetAll()
     expect(engine.getCustomThemes()).toHaveLength(0)
     expect(engine.getActiveThemeId()).toBe(DEEPSEEK_CLASSIC.id)
+  })
+
+  it('handles auto follow system preference and reacts to onThemeChange', () => {
+    engine.init(mockThemeService)
+    expect(engine.isAutoFollowSystem()).toBe(false)
+
+    engine.setAutoFollowSystem(true)
+    expect(engine.isAutoFollowSystem()).toBe(true)
+    expect(engine.getActiveThemeId()).toBe(NORD_AURORA.id)
+
+    // Simulate OS switching to light theme
+    if (themeChangeListener) {
+      themeChangeListener({ dark: false })
+      expect(engine.getActiveThemeId()).toBe(SOLARIZED_LIGHT.id)
+    }
+
+    // Simulate OS switching to dark theme
+    if (themeChangeListener) {
+      themeChangeListener({ dark: true })
+      expect(engine.getActiveThemeId()).toBe(NORD_AURORA.id)
+    }
+  })
+
+  it('cleans up tokens on dispose', () => {
+    engine.init(mockThemeService)
+    engine.dispose()
+    expect(mockThemeService.clearTokens).toHaveBeenCalledWith('fabric-theme-studio')
   })
 })

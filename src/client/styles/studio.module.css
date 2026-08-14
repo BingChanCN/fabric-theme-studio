@@ -300,11 +300,35 @@
   cursor: pointer;
 }
 
-.modalBtnConfirm {
-  border: none;
-  padding: 8px 18px;
-  font-size: 13px;
-  font-weight: 500;
+.colorPickerNative {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--dsw-alias-border-l2, #333340);
   border-radius: var(--dsw-radius-sm, 4px);
+  background: transparent;
   cursor: pointer;
+  outline: none;
+}
+
+.colorPickerNative::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.colorPickerNative::-webkit-color-swatch {
+  border: none;
+  border-radius: 3px;
+}
+
+.modalField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.modalLabel {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--dsw-alias-label-secondary, #aaa);
 }

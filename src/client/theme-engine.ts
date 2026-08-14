@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
-import { BUILTIN_PRESETS, DEEPSEEK_CLASSIC } from '../presets.ts'
+import type { FabricThemeService } from 'fabric/client'
+import { BUILTIN_PRESETS, DEEPSEEK_CLASSIC, NORD_AURORA, SOLARIZED_LIGHT } from '../presets.ts'
 import type { ContrastGrade, ThemeDefinition, ThemeStudioStatePayload, ThemeTokens } from '../types.ts'
 
 const STORAGE_KEY_ACTIVE = 'fabric_theme_studio_active_id'
 const STORAGE_KEY_CUSTOM = 'fabric_theme_studio_custom_themes'
+const STORAGE_KEY_AUTO = 'fabric_theme_studio_auto_system'
 const STYLE_TAG_ID = 'fabric-theme-studio-injected-style'
 
 /** Parse color string (rgb, rgba, hex) to RGB channels [0..255]. */
@@ -67,174 +69,179 @@ export function evaluateContrastGrade(ratio: number): ContrastGrade {
   return 'Fail'
 }
 
-/** Generate CSS variables mapping for a theme covering DSH aliases, specific variables, and statics. */
+/** Generate a complete dictionary of tokens for FabricThemeService and CSS variables. */
+export function generateTokenDictionary(tokens: ThemeTokens): Record<string, string> {
+  return {
+    // DSH Core Background & Container Aliases
+    '--dsw-alias-bg-base': tokens.background.bgBase,
+    '--dsw-alias-bg-layer-1': tokens.background.bgElevated,
+    '--dsw-alias-bg-layer-2': tokens.background.bgSubtle,
+    '--dsw-alias-bg-layer-3': tokens.background.bgSurface,
+    '--dsw-alias-bg-overlay': tokens.background.bgElevated,
+    '--dsw-alias-bg-module-platform': tokens.background.bgElevated,
+    '--dsw-alias-bg-multi-select': tokens.background.bgSurface,
+    '--dsw-alias-bg-skeleton': tokens.background.bgSubtle,
+
+    // DSH Specific UI Components
+    '--dsw-specific-sidebar-fill': tokens.background.bgElevated,
+    '--dsw-specific-sidebar-nav-item-active': tokens.brand.brandSurface,
+    '--dsw-specific-sidebar-nav-item-active-accent': tokens.brand.brandPrimary,
+    '--dsw-specific-sidebar-nav-item-hover': tokens.background.bgSurface,
+    '--dsw-specific-input-major': tokens.background.bgSunken,
+    '--dsw-specific-login-input': tokens.background.bgSunken,
+    '--dsw-specific-bubble': tokens.background.bgElevated,
+    '--dsw-specific-bubble-highlight': tokens.brand.brandSurface,
+    '--dsw-specific-selector': tokens.background.bgSurface,
+    '--dsw-specific-tip': tokens.background.bgSurface,
+    '--dsw-specific-menu': tokens.background.bgElevated,
+
+    // Typography / Text Hierarchy
+    '--dsw-alias-label-primary': tokens.text.textPrimary,
+    '--dsw-alias-label-primary-bluish': tokens.text.textPrimary,
+    '--dsw-alias-label-primary-dimmed': tokens.text.textSecondary,
+    '--dsw-alias-label-primary-foreground': tokens.text.textPrimary,
+    '--dsw-alias-label-primary-inverted': tokens.background.bgBase,
+    '--dsw-alias-label-secondary': tokens.text.textSecondary,
+    '--dsw-alias-label-tertiary': tokens.text.textTertiary,
+    '--dsw-alias-label-caption': tokens.text.textDisabled,
+    '--dsw-alias-label-dimmed': tokens.text.textDisabled,
+
+    // Dividers & Borders
+    '--dsw-alias-border-l1': tokens.border.borderSubtle,
+    '--dsw-alias-border-l2': tokens.border.borderBase,
+    '--dsw-alias-border-l3': tokens.border.borderFocus,
+    '--dsw-alias-border-l4': tokens.border.borderFocus,
+    '--dsw-alias-border-inverted': tokens.border.borderSubtle,
+    '--dsw-alias-border-inverted2': tokens.border.borderSubtle,
+    '--dsw-alias-border-l2-darkmode-thin': tokens.border.borderSubtle,
+
+    // Brand & Interactive Controls
+    '--dsw-alias-brand-primary': tokens.brand.brandPrimary,
+    '--dsw-alias-brand-text': tokens.brand.brandText,
+    '--dsw-alias-brand-primary-new-colorprimary-new-color': tokens.brand.brandPrimary,
+    '--dsw-alias-brand-primary-invert': tokens.brand.brandPrimary,
+    '--dsw-alias-button-primary-fill': tokens.brand.brandPrimary,
+    '--dsw-alias-button-primary-hover': tokens.brand.brandHover,
+    '--dsw-alias-button-info-fill': tokens.brand.brandPrimary,
+    '--dsw-alias-button-info-hover': tokens.brand.brandHover,
+    '--dsw-alias-button-elevated-fill': tokens.background.bgElevated,
+    '--dsw-alias-button-floating-fill': tokens.background.bgElevated,
+    '--dsw-alias-button-floating-hover': tokens.background.bgSurface,
+    '--dsw-alias-button-ghost-active-fill': tokens.brand.brandSurface,
+    '--dsw-alias-button-ghost-active-hover': tokens.background.bgSurface,
+    '--dsw-alias-button-ghost-active-border': tokens.border.borderBase,
+    '--dsw-alias-button-tool-bar-fill': tokens.background.bgSurface,
+    '--dsw-alias-interactive-bg-hover': tokens.background.bgSurface,
+    '--dsw-alias-interactive-bg-hover-accent': tokens.brand.brandSurface,
+    '--dsw-alias-interactive-bg-active': tokens.brand.brandSurface,
+    '--dsw-alias-interactive-bg-hover-solid': tokens.background.bgSurface,
+
+    // Status & Semantic States
+    '--dsw-alias-state-business-primary': tokens.brand.brandPrimary,
+    '--dsw-alias-state-business-tertiary': tokens.brand.brandSurface,
+    '--dsw-alias-state-success-primary': tokens.status.success,
+    '--dsw-alias-state-success-secondary': tokens.status.success,
+    '--dsw-alias-state-warn-primary': tokens.status.warning,
+    '--dsw-alias-state-warn-secondary': tokens.status.warning,
+    '--dsw-alias-state-warn-label': tokens.status.warning,
+    '--dsw-alias-state-error-primary': tokens.status.error,
+    '--dsw-alias-state-error-secondary': tokens.status.error,
+
+    // Static DeepSeek & Bluish Palette Overrides
+    '--dsw-static-deepseek-500': tokens.brand.brandPrimary,
+    '--dsw-static-deepseek-450': tokens.brand.brandHover,
+    '--dsw-static-deepseek-400': tokens.brand.brandHover,
+    '--dsw-static-deepseek-300': tokens.brand.brandText,
+    '--dsw-static-deepseek-200': tokens.brand.brandSurface,
+    '--dsw-static-deepseek-100': tokens.brand.brandSurface,
+    '--dsw-static-deepseek-50': tokens.brand.brandSurface,
+
+    '--dsw-static-neutral-bluish-1000': tokens.background.bgSunken,
+    '--dsw-static-neutral-bluish-950': tokens.background.bgBase,
+    '--dsw-static-neutral-bluish-900': tokens.background.bgElevated,
+    '--dsw-static-neutral-bluish-875': tokens.background.bgSubtle,
+    '--dsw-static-neutral-bluish-850': tokens.background.bgSurface,
+    '--dsw-static-neutral-bluish-800': tokens.border.borderBase,
+    '--dsw-static-neutral-bluish-750': tokens.border.borderSubtle,
+    '--dsw-static-neutral-bluish-700': tokens.text.textDisabled,
+    '--dsw-static-neutral-bluish-600': tokens.text.textTertiary,
+    '--dsw-static-neutral-bluish-500': tokens.text.textTertiary,
+    '--dsw-static-neutral-bluish-400': tokens.text.textSecondary,
+    '--dsw-static-neutral-bluish-300': tokens.text.textSecondary,
+    '--dsw-static-neutral-bluish-200': tokens.text.textPrimary,
+    '--dsw-static-neutral-bluish-100': tokens.text.textPrimary,
+    '--dsw-static-neutral-bluish-50': tokens.text.textPrimary,
+    '--dsw-static-neutral-bluish-00': tokens.text.textPrimary,
+
+    // Fabric Theme Studio Scoped Aliases
+    '--dsw-color-bg-base': tokens.background.bgBase,
+    '--dsw-color-bg-elevated': tokens.background.bgElevated,
+    '--dsw-color-bg-subtle': tokens.background.bgSubtle,
+    '--dsw-color-bg-surface': tokens.background.bgSurface,
+    '--dsw-color-bg-sunken': tokens.background.bgSunken,
+    '--dsw-color-text-primary': tokens.text.textPrimary,
+    '--dsw-color-text-secondary': tokens.text.textSecondary,
+    '--dsw-color-text-tertiary': tokens.text.textTertiary,
+    '--dsw-color-text-disabled': tokens.text.textDisabled,
+    '--dsw-color-border-base': tokens.border.borderBase,
+    '--dsw-color-border-subtle': tokens.border.borderSubtle,
+    '--dsw-color-border-focus': tokens.border.borderFocus,
+    '--dsw-color-brand-primary': tokens.brand.brandPrimary,
+    '--dsw-color-brand-hover': tokens.brand.brandHover,
+    '--dsw-color-brand-active': tokens.brand.brandActive,
+    '--dsw-color-brand-surface': tokens.brand.brandSurface,
+    '--dsw-color-brand-text': tokens.brand.brandText,
+    '--dsw-color-accent-primary': tokens.accent.accentPrimary,
+    '--dsw-color-accent-hover': tokens.accent.accentHover,
+    '--dsw-color-accent-surface': tokens.accent.accentSurface,
+    '--dsw-color-success-base': tokens.status.success,
+    '--dsw-color-warning-base': tokens.status.warning,
+    '--dsw-color-error-base': tokens.status.error,
+    '--dsw-color-info-base': tokens.status.info,
+
+    '--fts-bg-base': tokens.background.bgBase,
+    '--fts-bg-elevated': tokens.background.bgElevated,
+    '--fts-bg-subtle': tokens.background.bgSubtle,
+    '--fts-bg-surface': tokens.background.bgSurface,
+    '--fts-bg-sunken': tokens.background.bgSunken,
+    '--fts-text-primary': tokens.text.textPrimary,
+    '--fts-text-secondary': tokens.text.textSecondary,
+    '--fts-text-tertiary': tokens.text.textTertiary,
+    '--fts-text-disabled': tokens.text.textDisabled,
+    '--fts-border-base': tokens.border.borderBase,
+    '--fts-border-subtle': tokens.border.borderSubtle,
+    '--fts-border-focus': tokens.border.borderFocus,
+    '--fts-brand-primary': tokens.brand.brandPrimary,
+    '--fts-brand-hover': tokens.brand.brandHover,
+    '--fts-brand-active': tokens.brand.brandActive,
+    '--fts-brand-surface': tokens.brand.brandSurface,
+    '--fts-brand-text': tokens.brand.brandText,
+    '--fts-accent-primary': tokens.accent.accentPrimary,
+    '--fts-accent-hover': tokens.accent.accentHover,
+    '--fts-accent-surface': tokens.accent.accentSurface,
+    '--fts-status-success': tokens.status.success,
+    '--fts-status-warning': tokens.status.warning,
+    '--fts-status-error': tokens.status.error,
+    '--fts-status-info': tokens.status.info,
+    '--fts-radius-sm': tokens.shape.radiusSm,
+    '--fts-radius-md': tokens.shape.radiusMd,
+    '--fts-radius-lg': tokens.shape.radiusLg,
+    '--fts-shadow-sm': tokens.shape.shadowSm,
+    '--fts-shadow-md': tokens.shape.shadowMd,
+    '--fts-shadow-lg': tokens.shape.shadowLg,
+  }
+}
+
+/** Generate CSS variables mapping for a theme covering DSH aliases and specific variables. */
 export function generateCssVariables(tokens: ThemeTokens): string {
+  const dict = generateTokenDictionary(tokens)
   const lines: string[] = [
     ':root, body, body[data-ds-dark-theme], body[data-ds-light-theme], [data-fabric-theme] {',
-    '  /* DSH Core Background & Container Aliases */',
-    `  --dsw-alias-bg-base: ${tokens.background.bgBase} !important;`,
-    `  --dsw-alias-bg-layer-1: ${tokens.background.bgElevated} !important;`,
-    `  --dsw-alias-bg-layer-2: ${tokens.background.bgSubtle} !important;`,
-    `  --dsw-alias-bg-layer-3: ${tokens.background.bgSurface} !important;`,
-    `  --dsw-alias-bg-overlay: ${tokens.background.bgElevated} !important;`,
-    `  --dsw-alias-bg-module-platform: ${tokens.background.bgElevated} !important;`,
-    `  --dsw-alias-bg-multi-select: ${tokens.background.bgSurface} !important;`,
-    `  --dsw-alias-bg-skeleton: ${tokens.background.bgSubtle} !important;`,
-    '',
-    '  /* DSH Specific UI Components */',
-    `  --dsw-specific-sidebar-fill: ${tokens.background.bgElevated} !important;`,
-    `  --dsw-specific-sidebar-nav-item-active: ${tokens.brand.brandSurface} !important;`,
-    `  --dsw-specific-sidebar-nav-item-active-accent: ${tokens.brand.brandPrimary} !important;`,
-    `  --dsw-specific-sidebar-nav-item-hover: ${tokens.background.bgSurface} !important;`,
-    `  --dsw-specific-input-major: ${tokens.background.bgSunken} !important;`,
-    `  --dsw-specific-login-input: ${tokens.background.bgSunken} !important;`,
-    `  --dsw-specific-bubble: ${tokens.background.bgElevated} !important;`,
-    `  --dsw-specific-bubble-highlight: ${tokens.brand.brandSurface} !important;`,
-    `  --dsw-specific-selector: ${tokens.background.bgSurface} !important;`,
-    `  --dsw-specific-tip: ${tokens.background.bgSurface} !important;`,
-    `  --dsw-specific-menu: ${tokens.background.bgElevated} !important;`,
-    '',
-    '  /* Typography / Text Hierarchy */',
-    `  --dsw-alias-label-primary: ${tokens.text.textPrimary} !important;`,
-    `  --dsw-alias-label-primary-bluish: ${tokens.text.textPrimary} !important;`,
-    `  --dsw-alias-label-primary-dimmed: ${tokens.text.textSecondary} !important;`,
-    `  --dsw-alias-label-primary-foreground: ${tokens.text.textPrimary} !important;`,
-    `  --dsw-alias-label-primary-inverted: ${tokens.background.bgBase} !important;`,
-    `  --dsw-alias-label-secondary: ${tokens.text.textSecondary} !important;`,
-    `  --dsw-alias-label-tertiary: ${tokens.text.textTertiary} !important;`,
-    `  --dsw-alias-label-caption: ${tokens.text.textDisabled} !important;`,
-    `  --dsw-alias-label-dimmed: ${tokens.text.textDisabled} !important;`,
-    '',
-    '  /* Dividers & Borders */',
-    `  --dsw-alias-border-l1: ${tokens.border.borderSubtle} !important;`,
-    `  --dsw-alias-border-l2: ${tokens.border.borderBase} !important;`,
-    `  --dsw-alias-border-l3: ${tokens.border.borderFocus} !important;`,
-    `  --dsw-alias-border-l4: ${tokens.border.borderFocus} !important;`,
-    `  --dsw-alias-border-inverted: ${tokens.border.borderSubtle} !important;`,
-    `  --dsw-alias-border-inverted2: ${tokens.border.borderSubtle} !important;`,
-    `  --dsw-alias-border-l2-darkmode-thin: ${tokens.border.borderSubtle} !important;`,
-    '',
-    '  /* Brand & Interactive Controls */',
-    `  --dsw-alias-brand-primary: ${tokens.brand.brandPrimary} !important;`,
-    `  --dsw-alias-brand-text: ${tokens.brand.brandText} !important;`,
-    `  --dsw-alias-brand-primary-new-colorprimary-new-color: ${tokens.brand.brandPrimary} !important;`,
-    `  --dsw-alias-brand-primary-invert: ${tokens.brand.brandPrimary} !important;`,
-    `  --dsw-alias-button-primary-fill: ${tokens.brand.brandPrimary} !important;`,
-    `  --dsw-alias-button-primary-hover: ${tokens.brand.brandHover} !important;`,
-    `  --dsw-alias-button-info-fill: ${tokens.brand.brandPrimary} !important;`,
-    `  --dsw-alias-button-info-hover: ${tokens.brand.brandHover} !important;`,
-    `  --dsw-alias-button-elevated-fill: ${tokens.background.bgElevated} !important;`,
-    `  --dsw-alias-button-floating-fill: ${tokens.background.bgElevated} !important;`,
-    `  --dsw-alias-button-floating-hover: ${tokens.background.bgSurface} !important;`,
-    `  --dsw-alias-button-ghost-active-fill: ${tokens.brand.brandSurface} !important;`,
-    `  --dsw-alias-button-ghost-active-hover: ${tokens.background.bgSurface} !important;`,
-    `  --dsw-alias-button-ghost-active-border: ${tokens.border.borderBase} !important;`,
-    `  --dsw-alias-button-tool-bar-fill: ${tokens.background.bgSurface} !important;`,
-    `  --dsw-alias-interactive-bg-hover: ${tokens.background.bgSurface} !important;`,
-    `  --dsw-alias-interactive-bg-hover-accent: ${tokens.brand.brandSurface} !important;`,
-    `  --dsw-alias-interactive-bg-active: ${tokens.brand.brandSurface} !important;`,
-    `  --dsw-alias-interactive-bg-hover-solid: ${tokens.background.bgSurface} !important;`,
-    '',
-    '  /* Status & Semantic States */',
-    `  --dsw-alias-state-business-primary: ${tokens.brand.brandPrimary} !important;`,
-    `  --dsw-alias-state-business-tertiary: ${tokens.brand.brandSurface} !important;`,
-    `  --dsw-alias-state-success-primary: ${tokens.status.success} !important;`,
-    `  --dsw-alias-state-success-secondary: ${tokens.status.success} !important;`,
-    `  --dsw-alias-state-warn-primary: ${tokens.status.warning} !important;`,
-    `  --dsw-alias-state-warn-secondary: ${tokens.status.warning} !important;`,
-    `  --dsw-alias-state-warn-label: ${tokens.status.warning} !important;`,
-    `  --dsw-alias-state-error-primary: ${tokens.status.error} !important;`,
-    `  --dsw-alias-state-error-secondary: ${tokens.status.error} !important;`,
-    '',
-    '  /* Static Palette Overrides for DeepSeek & Bluish Neutrals */',
-    `  --dsw-static-deepseek-500: ${tokens.brand.brandPrimary} !important;`,
-    `  --dsw-static-deepseek-450: ${tokens.brand.brandHover} !important;`,
-    `  --dsw-static-deepseek-400: ${tokens.brand.brandHover} !important;`,
-    `  --dsw-static-deepseek-300: ${tokens.brand.brandText} !important;`,
-    `  --dsw-static-deepseek-200: ${tokens.brand.brandSurface} !important;`,
-    `  --dsw-static-deepseek-100: ${tokens.brand.brandSurface} !important;`,
-    `  --dsw-static-deepseek-50: ${tokens.brand.brandSurface} !important;`,
-    `  --dsw-static-neutral-bluish-1000: ${tokens.background.bgSunken} !important;`,
-    `  --dsw-static-neutral-bluish-950: ${tokens.background.bgBase} !important;`,
-    `  --dsw-static-neutral-bluish-900: ${tokens.background.bgElevated} !important;`,
-    `  --dsw-static-neutral-bluish-875: ${tokens.background.bgSubtle} !important;`,
-    `  --dsw-static-neutral-bluish-850: ${tokens.background.bgSurface} !important;`,
-    `  --dsw-static-neutral-bluish-800: ${tokens.border.borderBase} !important;`,
-    `  --dsw-static-neutral-bluish-750: ${tokens.border.borderSubtle} !important;`,
-    `  --dsw-static-neutral-bluish-700: ${tokens.text.textDisabled} !important;`,
-    `  --dsw-static-neutral-bluish-600: ${tokens.text.textTertiary} !important;`,
-    `  --dsw-static-neutral-bluish-500: ${tokens.text.textTertiary} !important;`,
-    `  --dsw-static-neutral-bluish-400: ${tokens.text.textSecondary} !important;`,
-    `  --dsw-static-neutral-bluish-300: ${tokens.text.textSecondary} !important;`,
-    `  --dsw-static-neutral-bluish-200: ${tokens.text.textPrimary} !important;`,
-    `  --dsw-static-neutral-bluish-100: ${tokens.text.textPrimary} !important;`,
-    `  --dsw-static-neutral-bluish-50: ${tokens.text.textPrimary} !important;`,
-    `  --dsw-static-neutral-bluish-00: ${tokens.text.textPrimary} !important;`,
-    '',
-    '  /* Fabric Theme Studio Scope Variables */',
-    `  --dsw-color-bg-base: ${tokens.background.bgBase} !important;`,
-    `  --dsw-color-bg-elevated: ${tokens.background.bgElevated} !important;`,
-    `  --dsw-color-bg-subtle: ${tokens.background.bgSubtle} !important;`,
-    `  --dsw-color-bg-surface: ${tokens.background.bgSurface} !important;`,
-    `  --dsw-color-bg-sunken: ${tokens.background.bgSunken} !important;`,
-    `  --dsw-color-text-primary: ${tokens.text.textPrimary} !important;`,
-    `  --dsw-color-text-secondary: ${tokens.text.textSecondary} !important;`,
-    `  --dsw-color-text-tertiary: ${tokens.text.textTertiary} !important;`,
-    `  --dsw-color-text-disabled: ${tokens.text.textDisabled} !important;`,
-    `  --dsw-color-border-base: ${tokens.border.borderBase} !important;`,
-    `  --dsw-color-border-subtle: ${tokens.border.borderSubtle} !important;`,
-    `  --dsw-color-border-focus: ${tokens.border.borderFocus} !important;`,
-    `  --dsw-color-brand-primary: ${tokens.brand.brandPrimary} !important;`,
-    `  --dsw-color-brand-hover: ${tokens.brand.brandHover} !important;`,
-    `  --dsw-color-brand-active: ${tokens.brand.brandActive} !important;`,
-    `  --dsw-color-brand-surface: ${tokens.brand.brandSurface} !important;`,
-    `  --dsw-color-brand-text: ${tokens.brand.brandText} !important;`,
-    `  --dsw-color-accent-primary: ${tokens.accent.accentPrimary} !important;`,
-    `  --dsw-color-accent-hover: ${tokens.accent.accentHover} !important;`,
-    `  --dsw-color-accent-surface: ${tokens.accent.accentSurface} !important;`,
-    `  --dsw-color-success-base: ${tokens.status.success} !important;`,
-    `  --dsw-color-warning-base: ${tokens.status.warning} !important;`,
-    `  --dsw-color-error-base: ${tokens.status.error} !important;`,
-    `  --dsw-color-info-base: ${tokens.status.info} !important;`,
-    `  --dsw-radius-sm: ${tokens.shape.radiusSm} !important;`,
-    `  --dsw-radius-md: ${tokens.shape.radiusMd} !important;`,
-    `  --dsw-radius-lg: ${tokens.shape.radiusLg} !important;`,
-    `  --dsw-shadow-sm: ${tokens.shape.shadowSm} !important;`,
-    `  --dsw-shadow-md: ${tokens.shape.shadowMd} !important;`,
-    `  --dsw-shadow-lg: ${tokens.shape.shadowLg} !important;`,
-    '',
-    `  --fts-bg-base: ${tokens.background.bgBase} !important;`,
-    `  --fts-bg-elevated: ${tokens.background.bgElevated} !important;`,
-    `  --fts-bg-subtle: ${tokens.background.bgSubtle} !important;`,
-    `  --fts-bg-surface: ${tokens.background.bgSurface} !important;`,
-    `  --fts-bg-sunken: ${tokens.background.bgSunken} !important;`,
-    `  --fts-text-primary: ${tokens.text.textPrimary} !important;`,
-    `  --fts-text-secondary: ${tokens.text.textSecondary} !important;`,
-    `  --fts-text-tertiary: ${tokens.text.textTertiary} !important;`,
-    `  --fts-text-disabled: ${tokens.text.textDisabled} !important;`,
-    `  --fts-border-base: ${tokens.border.borderBase} !important;`,
-    `  --fts-border-subtle: ${tokens.border.borderSubtle} !important;`,
-    `  --fts-border-focus: ${tokens.border.borderFocus} !important;`,
-    `  --fts-brand-primary: ${tokens.brand.brandPrimary} !important;`,
-    `  --fts-brand-hover: ${tokens.brand.brandHover} !important;`,
-    `  --fts-brand-active: ${tokens.brand.brandActive} !important;`,
-    `  --fts-brand-surface: ${tokens.brand.brandSurface} !important;`,
-    `  --fts-brand-text: ${tokens.brand.brandText} !important;`,
-    `  --fts-accent-primary: ${tokens.accent.accentPrimary} !important;`,
-    `  --fts-accent-hover: ${tokens.accent.accentHover} !important;`,
-    `  --fts-accent-surface: ${tokens.accent.accentSurface} !important;`,
-    `  --fts-status-success: ${tokens.status.success} !important;`,
-    `  --fts-status-warning: ${tokens.status.warning} !important;`,
-    `  --fts-status-error: ${tokens.status.error} !important;`,
-    `  --fts-status-info: ${tokens.status.info} !important;`,
-    `  --fts-radius-sm: ${tokens.shape.radiusSm} !important;`,
-    `  --fts-radius-md: ${tokens.shape.radiusMd} !important;`,
-    `  --fts-radius-lg: ${tokens.shape.radiusLg} !important;`,
-    `  --fts-shadow-sm: ${tokens.shape.shadowSm} !important;`,
-    `  --fts-shadow-md: ${tokens.shape.shadowMd} !important;`,
-    `  --fts-shadow-lg: ${tokens.shape.shadowLg} !important;`,
-    '}',
   ]
+  for (const [k, v] of Object.entries(dict)) {
+    lines.push(`  ${k}: ${v} !important;`)
+  }
+  lines.push('}')
   return lines.join('\n')
 }
 
@@ -245,18 +252,35 @@ export class ThemeStudioEngine {
   private activeThemeId: string = DEEPSEEK_CLASSIC.id
   private activeTheme: ThemeDefinition = DEEPSEEK_CLASSIC
   private customThemes: ThemeDefinition[] = []
+  private autoFollowSystem: boolean = false
   private listeners: Set<ThemeStudioListener> = new Set()
   private initialized: boolean = false
   private syncSeq: number = 0
+  private fabricThemeService: FabricThemeService | undefined
+  private themeTeardown: (() => void) | undefined
 
   public constructor() {
     this.restoreFromStorage()
   }
 
-  public init(): void {
+  public init(themeService?: FabricThemeService): void {
+    if (themeService) {
+      this.fabricThemeService = themeService
+    }
     if (this.initialized) return
     this.initialized = true
+
     this.applyThemeToDom(this.activeTheme)
+
+    if (this.fabricThemeService) {
+      this.themeTeardown = this.fabricThemeService.onThemeChange(({ dark }) => {
+        if (this.autoFollowSystem) {
+          const targetId = dark ? NORD_AURORA.id : SOLARIZED_LIGHT.id
+          this.setActiveTheme(targetId)
+        }
+      })
+    }
+
     void this.syncWithHost()
   }
 
@@ -278,6 +302,21 @@ export class ThemeStudioEngine {
 
   public getPresets(): readonly ThemeDefinition[] {
     return BUILTIN_PRESETS
+  }
+
+  public isAutoFollowSystem(): boolean {
+    return this.autoFollowSystem
+  }
+
+  public setAutoFollowSystem(enabled: boolean): void {
+    this.autoFollowSystem = enabled
+    this.persistToStorage()
+    if (enabled && this.fabricThemeService) {
+      const isDark = this.fabricThemeService.isDark()
+      const targetId = isDark ? NORD_AURORA.id : SOLARIZED_LIGHT.id
+      this.setActiveTheme(targetId)
+    }
+    this.notify()
   }
 
   public subscribe(listener: ThemeStudioListener): () => void {
@@ -352,6 +391,7 @@ export class ThemeStudioEngine {
   public resetAll(): void {
     this.syncSeq++
     this.customThemes = []
+    this.autoFollowSystem = false
     this.setActiveTheme(DEEPSEEK_CLASSIC.id)
     this.persistToStorage()
     this.notify()
@@ -359,6 +399,13 @@ export class ThemeStudioEngine {
   }
 
   public dispose(): void {
+    if (this.themeTeardown) {
+      this.themeTeardown()
+      this.themeTeardown = undefined
+    }
+    if (this.fabricThemeService) {
+      this.fabricThemeService.clearTokens('fabric-theme-studio')
+    }
     if (typeof document !== 'undefined') {
       const tag = document.getElementById(STYLE_TAG_ID)
       if (tag) tag.remove()
@@ -370,25 +417,36 @@ export class ThemeStudioEngine {
   }
 
   private applyThemeToDom(theme: ThemeDefinition): void {
-    if (typeof document === 'undefined') return
-    let styleTag = document.getElementById(STYLE_TAG_ID) as HTMLStyleElement | null
-    if (!styleTag) {
-      styleTag = document.createElement('style')
-      styleTag.id = STYLE_TAG_ID
-      styleTag.setAttribute('data-plugin', 'fabric-theme-studio')
-    }
-    // Always move to the end of head so it takes highest cascade priority
-    document.head.appendChild(styleTag)
-    styleTag.textContent = generateCssVariables(theme.tokens)
+    const dict = generateTokenDictionary(theme.tokens)
 
-    document.body.setAttribute('data-fabric-theme', theme.id)
-    document.body.setAttribute('data-fabric-theme-mode', theme.category)
-    if (theme.category === 'light') {
-      document.body.setAttribute('data-ds-light-theme', '')
-      document.body.removeAttribute('data-ds-dark-theme')
-    } else {
-      document.body.setAttribute('data-ds-dark-theme', '')
-      document.body.removeAttribute('data-ds-light-theme')
+    // Primary path: Use Fabric Theme Bridge service if available
+    if (this.fabricThemeService) {
+      this.fabricThemeService.setTokens('fabric-theme-studio', dict, {
+        priority: 100,
+        scope: 'global',
+      })
+    }
+
+    // Secondary path: Maintain DOM data attributes and fallback style tag
+    if (typeof document !== 'undefined') {
+      let styleTag = document.getElementById(STYLE_TAG_ID) as HTMLStyleElement | null
+      if (!styleTag) {
+        styleTag = document.createElement('style')
+        styleTag.id = STYLE_TAG_ID
+        styleTag.setAttribute('data-plugin', 'fabric-theme-studio')
+      }
+      document.head?.appendChild(styleTag)
+      styleTag.textContent = generateCssVariables(theme.tokens)
+
+      document.body.setAttribute('data-fabric-theme', theme.id)
+      document.body.setAttribute('data-fabric-theme-mode', theme.category)
+      if (theme.category === 'light') {
+        document.body.setAttribute('data-ds-light-theme', '')
+        document.body.removeAttribute('data-ds-dark-theme')
+      } else {
+        document.body.setAttribute('data-ds-dark-theme', '')
+        document.body.removeAttribute('data-ds-light-theme')
+      }
     }
   }
 
@@ -405,6 +463,10 @@ export class ThemeStudioEngine {
   private restoreFromStorage(): void {
     if (typeof localStorage === 'undefined') return
     try {
+      const savedAuto = localStorage.getItem(STORAGE_KEY_AUTO)
+      if (savedAuto) {
+        this.autoFollowSystem = savedAuto === 'true'
+      }
       const savedCustom = localStorage.getItem(STORAGE_KEY_CUSTOM)
       if (savedCustom) {
         const parsed = JSON.parse(savedCustom) as ThemeDefinition[]
@@ -431,6 +493,7 @@ export class ThemeStudioEngine {
     try {
       localStorage.setItem(STORAGE_KEY_ACTIVE, this.activeThemeId)
       localStorage.setItem(STORAGE_KEY_CUSTOM, JSON.stringify(this.customThemes))
+      localStorage.setItem(STORAGE_KEY_AUTO, String(this.autoFollowSystem))
     } catch {
       // ignore storage access errors
     }
@@ -522,6 +585,8 @@ export function useThemeStudio(): {
   allThemes: readonly ThemeDefinition[]
   presets: readonly ThemeDefinition[]
   customThemes: readonly ThemeDefinition[]
+  autoFollowSystem: boolean
+  setAutoFollowSystem: (enabled: boolean) => void
   setActiveTheme: (id: string) => boolean
   applyCustomThemeDraft: (theme: ThemeDefinition) => void
   saveCustomTheme: (theme: ThemeDefinition) => void
@@ -544,6 +609,8 @@ export function useThemeStudio(): {
     allThemes: themeEngine.getAllThemes(),
     presets: themeEngine.getPresets(),
     customThemes: themeEngine.getCustomThemes(),
+    autoFollowSystem: themeEngine.isAutoFollowSystem(),
+    setAutoFollowSystem: (enabled: boolean) => themeEngine.setAutoFollowSystem(enabled),
     setActiveTheme: (id: string) => themeEngine.setActiveTheme(id),
     applyCustomThemeDraft: (theme: ThemeDefinition) => themeEngine.applyCustomThemeDraft(theme),
     saveCustomTheme: (theme: ThemeDefinition) => themeEngine.saveCustomTheme(theme),

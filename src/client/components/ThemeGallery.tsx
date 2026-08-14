@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { FabricPageProps } from 'fabric/client'
-import { Badge, EmptyState, Page, PageHeader, Section, ToolbarButton } from 'fabric/ui'
+import { Badge, Dropdown, EmptyState, Modal, Page, PageHeader, Section, ToolbarButton } from 'fabric/ui'
 import type { ThemeCategory, ThemeDefinition } from '../../types.ts'
 import { calculateContrastRatio, evaluateContrastGrade, useThemeStudio } from '../theme-engine.ts'
 import styles from '../styles/gallery.module.css'
@@ -9,6 +9,7 @@ export function ThemeGallery(props: FabricPageProps) {
   const { activeThemeId, allThemes, setActiveTheme, deleteCustomTheme, resetAll } = useThemeStudio()
   const [filter, setFilter] = useState<string>('all')
   const [search, setSearch] = useState<string>('')
+  const [inspectingTheme, setInspectingTheme] = useState<ThemeDefinition | null>(null)
 
   const filteredThemes = useMemo(() => {
     return allThemes.filter(t => {
@@ -43,6 +44,13 @@ export function ThemeGallery(props: FabricPageProps) {
   const handleReset = () => {
     resetAll()
     props.notify('已恢复为 DeepSeek Classic 默认主题', { tone: 'info' })
+  }
+
+  const handleCopyJson = (theme: ThemeDefinition) => {
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      void navigator.clipboard.writeText(JSON.stringify(theme, null, 2))
+      props.notify(`已复制「${theme.name}」JSON 定义到剪贴板`, { tone: 'info' })
+    }
   }
 
   return (
@@ -119,122 +127,193 @@ export function ThemeGallery(props: FabricPageProps) {
                 className={styles.actionBtnPrimary}
                 onClick={() => props.openFabric('theme-studio')}
               >
-                新建自定义主题
+                前往调色盘创建 →
               </button>
             }
           />
         ) : (
-          <div className={styles.cardGrid}>
+          <div className={styles.grid}>
             {filteredThemes.map(theme => {
               const isActive = theme.id === activeThemeId
-              const contrastRatio = calculateContrastRatio(
+              const ratio = calculateContrastRatio(
                 theme.tokens.background.bgBase,
                 theme.tokens.text.textPrimary,
               )
-              const contrastGrade = evaluateContrastGrade(contrastRatio)
-              const toneForGrade = contrastGrade === 'AAA' ? 'success' : contrastGrade === 'AA' ? 'info' : 'warning'
+              const grade = evaluateContrastGrade(ratio)
+
+              const dropdownItems = [
+                {
+                  id: 'apply',
+                  label: '应用此主题',
+                  disabled: isActive,
+                  onClick: () => handleApply(theme),
+                },
+                {
+                  id: 'customize',
+                  label: '在调色盘微调',
+                  onClick: () => handleCustomize(theme),
+                },
+                {
+                  id: 'inspect',
+                  label: '查看 JSON 定义',
+                  onClick: () => setInspectingTheme(theme),
+                },
+                {
+                  id: 'copy',
+                  label: '复制 JSON',
+                  onClick: () => handleCopyJson(theme),
+                },
+                ...(!theme.isBuiltin
+                  ? [
+                      {
+                        id: 'delete',
+                        label: '删除自定义主题',
+                        danger: true,
+                        onClick: () => handleDelete(theme),
+                      },
+                    ]
+                  : []),
+              ]
 
               return (
                 <div
                   key={theme.id}
-                  className={`${styles.themeCard} ${isActive ? styles.themeCardActive : ''}`}
+                  className={`${styles.card} ${isActive ? styles.cardActive : ''}`}
                   style={{
                     backgroundColor: theme.tokens.background.bgElevated,
-                    borderColor: isActive ? theme.tokens.brand.brandPrimary : theme.tokens.border.borderBase,
+                    borderColor: isActive
+                      ? theme.tokens.brand.brandPrimary
+                      : theme.tokens.border.borderBase,
+                    boxShadow: isActive
+                      ? `0 0 0 2px ${theme.tokens.brand.brandPrimary}`
+                      : theme.tokens.shape.shadowSm,
                   }}
                 >
+                  {/* Card Header */}
                   <div className={styles.cardHeader}>
-                    <div className={styles.cardTitleArea}>
-                      <h3 className={styles.cardTitle} style={{ color: theme.tokens.text.textPrimary }}>
+                    <div className={styles.cardTitleGroup}>
+                      <span
+                        className={styles.cardIndicator}
+                        style={{ backgroundColor: theme.tokens.brand.brandPrimary }}
+                      />
+                      <span
+                        className={styles.cardTitle}
+                        style={{ color: theme.tokens.text.textPrimary }}
+                      >
                         {theme.name}
-                      </h3>
-                      <div className={styles.badges}>
-                        <Badge tone={theme.category === 'light' ? 'neutral' : 'info'}>
-                          {theme.category === 'light' ? '浅色' : theme.category === 'dark' ? '深色' : '特色'}
-                        </Badge>
-                        <Badge tone={toneForGrade}>
-                          {contrastGrade} ({contrastRatio}:1)
-                        </Badge>
-                        {theme.isBuiltin ? (
-                          <Badge tone="neutral">官方内置</Badge>
-                        ) : (
-                          <Badge tone="success">用户自定义</Badge>
-                        )}
-                      </div>
-                    </div>
-                    {isActive && (
-                      <span className={styles.activePill} style={{ backgroundColor: theme.tokens.brand.brandPrimary }}>
-                        当前生效
                       </span>
-                    )}
+                    </div>
+                    <div className={styles.badgeGroup}>
+                      <Badge tone={grade === 'AAA' ? 'success' : grade === 'AA' ? 'info' : 'warning'}>
+                        {grade} ({ratio}:1)
+                      </Badge>
+                      <Badge tone="neutral">{theme.category}</Badge>
+                    </div>
                   </div>
 
-                  <p className={styles.cardDesc} style={{ color: theme.tokens.text.textSecondary }}>
+                  {/* Description */}
+                  <p
+                    className={styles.cardDesc}
+                    style={{ color: theme.tokens.text.textSecondary }}
+                  >
                     {theme.description}
                   </p>
 
-                  <div className={styles.paletteStrip}>
+                  {/* Swatches Visual Strip */}
+                  <div className={styles.swatchRow}>
                     <div
-                      className={styles.colorDot}
-                      title={`Brand: ${theme.tokens.brand.brandPrimary}`}
-                      style={{ backgroundColor: theme.tokens.brand.brandPrimary }}
-                    />
-                    <div
-                      className={styles.colorDot}
-                      title={`Accent: ${theme.tokens.accent.accentPrimary}`}
-                      style={{ backgroundColor: theme.tokens.accent.accentPrimary }}
-                    />
-                    <div
-                      className={styles.colorDot}
-                      title={`Base BG: ${theme.tokens.background.bgBase}`}
+                      className={styles.swatch}
                       style={{ backgroundColor: theme.tokens.background.bgBase }}
+                      title={`bgBase: ${theme.tokens.background.bgBase}`}
                     />
                     <div
-                      className={styles.colorDot}
-                      title={`Elevated BG: ${theme.tokens.background.bgElevated}`}
+                      className={styles.swatch}
                       style={{ backgroundColor: theme.tokens.background.bgElevated }}
+                      title={`bgElevated: ${theme.tokens.background.bgElevated}`}
                     />
                     <div
-                      className={styles.colorDot}
-                      title={`Primary Text: ${theme.tokens.text.textPrimary}`}
-                      style={{ backgroundColor: theme.tokens.text.textPrimary }}
+                      className={styles.swatch}
+                      style={{ backgroundColor: theme.tokens.brand.brandPrimary }}
+                      title={`brandPrimary: ${theme.tokens.brand.brandPrimary}`}
+                    />
+                    <div
+                      className={styles.swatch}
+                      style={{ backgroundColor: theme.tokens.accent.accentPrimary }}
+                      title={`accentPrimary: ${theme.tokens.accent.accentPrimary}`}
+                    />
+                    <div
+                      className={styles.swatch}
+                      style={{ backgroundColor: theme.tokens.status.success }}
+                      title={`success: ${theme.tokens.status.success}`}
+                    />
+                    <div
+                      className={styles.swatch}
+                      style={{ backgroundColor: theme.tokens.status.warning }}
+                      title={`warning: ${theme.tokens.status.warning}`}
+                    />
+                    <div
+                      className={styles.swatch}
+                      style={{ backgroundColor: theme.tokens.status.error }}
+                      title={`error: ${theme.tokens.status.error}`}
                     />
                   </div>
 
+                  {/* Card Actions Footer */}
                   <div className={styles.cardFooter}>
-                    <button
-                      type="button"
-                      disabled={isActive}
-                      className={isActive ? styles.btnDisabled : styles.btnApply}
-                      style={{
-                        backgroundColor: isActive ? 'transparent' : theme.tokens.brand.brandPrimary,
-                        color: isActive ? theme.tokens.text.textDisabled : '#ffffff',
-                      }}
-                      onClick={() => handleApply(theme)}
-                    >
-                      {isActive ? '已激活' : '应用主题'}
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.btnSecondary}
-                      style={{
-                        color: theme.tokens.text.textSecondary,
-                        borderColor: theme.tokens.border.borderBase,
-                      }}
-                      onClick={() => handleCustomize(theme)}
-                    >
-                      调色微调
-                    </button>
-                    {!theme.isBuiltin && (
+                    <div className={styles.footerLeft}>
+                      {isActive ? (
+                        <span
+                          className={styles.activeLabel}
+                          style={{ color: theme.tokens.brand.brandPrimary }}
+                        >
+                          ✓ 当前生效中
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          className={styles.btnApply}
+                          style={{
+                            backgroundColor: theme.tokens.brand.brandPrimary,
+                            color: '#ffffff',
+                          }}
+                          onClick={() => handleApply(theme)}
+                        >
+                          应用主题
+                        </button>
+                      )}
+                    </div>
+                    <div className={styles.footerRight}>
                       <button
                         type="button"
-                        className={styles.btnDanger}
-                        title="删除此自定义主题"
-                        onClick={() => handleDelete(theme)}
+                        className={styles.btnSecondary}
+                        style={{
+                          backgroundColor: theme.tokens.background.bgSurface,
+                          color: theme.tokens.text.textSecondary,
+                          borderColor: theme.tokens.border.borderSubtle,
+                        }}
+                        onClick={() => handleCustomize(theme)}
                       >
-                        删除
+                        微调
                       </button>
-                    )}
+                      <Dropdown
+                        trigger={
+                          <button
+                            type="button"
+                            className={styles.btnIconMore}
+                            style={{
+                              color: theme.tokens.text.textSecondary,
+                              backgroundColor: theme.tokens.background.bgSurface,
+                              borderColor: theme.tokens.border.borderSubtle,
+                            }}
+                            title="更多选项"
+                          >
+                            •••
+                          </button>
+                        }
+                        items={dropdownItems}
+                        placement="bottom"
+                      />
+                    </div>
                   </div>
                 </div>
               )
@@ -242,6 +321,50 @@ export function ThemeGallery(props: FabricPageProps) {
           </div>
         )}
       </Section>
+
+      {/* Inspect Theme JSON Modal */}
+      <Modal
+        open={inspectingTheme !== null}
+        onClose={() => setInspectingTheme(null)}
+        title={`主题元数据定义：「${inspectingTheme?.name ?? ''}」`}
+        description="基于 JSON Schema 的完整主题 Token 数据字典"
+        footer={
+          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+            <button
+              type="button"
+              className={styles.btnSecondary}
+              onClick={() => {
+                if (inspectingTheme) handleCopyJson(inspectingTheme)
+              }}
+            >
+              复制 JSON
+            </button>
+            <button
+              type="button"
+              className={styles.actionBtnPrimary}
+              onClick={() => setInspectingTheme(null)}
+            >
+              关闭
+            </button>
+          </div>
+        }
+      >
+        <pre
+          style={{
+            maxHeight: '320px',
+            overflowY: 'auto',
+            padding: '12px',
+            borderRadius: '6px',
+            fontSize: '12px',
+            fontFamily: 'monospace',
+            backgroundColor: 'var(--dsw-alias-bg-layer-1, #1e1e24)',
+            color: 'var(--dsw-alias-label-primary, #ffffff)',
+            border: '1px solid var(--dsw-alias-border-l2, rgba(255,255,255,0.1))',
+          }}
+        >
+          {inspectingTheme ? JSON.stringify(inspectingTheme, null, 2) : ''}
+        </pre>
+      </Modal>
     </Page>
   )
 }

@@ -210,6 +210,22 @@
   background-color: rgba(239, 68, 68, 0.1);
 }
 
+.footerRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btnIconMore {
+  padding: 4px 8px;
+  font-size: 11px;
+  border-radius: var(--dsw-radius-sm, 4px);
+  border: 1px solid var(--dsw-alias-border-l2, #3a3a48);
+  cursor: pointer;
+  letter-spacing: 1px;
+  line-height: 1;
+}
+
 .actionBtnPrimary {
   background-color: var(--dsw-color-brand-primary, #4176e6);
   color: #ffffff;
