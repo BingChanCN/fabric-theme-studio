@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { FabricPageProps } from 'fabric/client'
 import {
   Badge,
+  ConfigForm,
   Dropdown,
   EmptyState,
   ErrorState,
@@ -14,18 +15,71 @@ import {
   ToolbarButton,
   Z_INDEX,
   tokens as fabricTokens,
+  useFabricConfig,
 } from 'fabric/ui'
+import type { FabricConfigSchema } from 'fabric/sdk'
 import { useThemeStudio } from '../theme-engine.ts'
 import styles from '../styles/showcase.module.css'
 
+const DEMO_SCHEMA: FabricConfigSchema = {
+  enableTelemetry: {
+    type: 'boolean',
+    title: '启用性能遥测与分析 (Telemetry)',
+    description: '收集渲染帧率与 Token 注入延迟',
+    default: true,
+  },
+  endpoint: {
+    type: 'string',
+    title: '上报服务器地址 (Endpoint URL)',
+    default: 'https://telemetry.local/v1',
+    placeholder: 'https://...',
+  },
+  logLevel: {
+    type: 'select',
+    title: '运行日志级别 (Log Level)',
+    default: 'info',
+    options: [
+      { label: 'Debug (调试输出)', value: 'debug' },
+      { label: 'Info (常规信息)', value: 'info' },
+      { label: 'Warn (仅警告)', value: 'warn' },
+      { label: 'Error (仅致命错误)', value: 'error' },
+    ],
+  },
+  sampleRate: {
+    type: 'number',
+    title: '采样率比例 (%)',
+    description: '每秒抽样分析的会话比例',
+    default: 80,
+    min: 0,
+    max: 100,
+    step: 5,
+  },
+  notes: {
+    type: 'textarea',
+    title: '备注说明 (Notes)',
+    default: 'Fabric Phase 2 Schema Engine Demo',
+    placeholder: '输入自定义说明...',
+  },
+}
+
 export function ComponentShowcase(props: FabricPageProps) {
   const { activeTheme } = useThemeStudio()
+  const config = useFabricConfig('fabric-theme-studio')
   const [asyncMode, setAsyncMode] = useState<'loaded' | 'loading' | 'empty' | 'error'>('loaded')
-  const [inputText, setInputText] = useState('DeepSeek Harness + Fabric v0.2.0')
+  const [inputText, setInputText] = useState('DeepSeek Harness + Fabric v0.3.0')
   const [toggleChecked, setToggleChecked] = useState(true)
   const [sliderVal, setSliderVal] = useState(72)
 
-  // Fabric v0.2.0 Phase 1 Interaction Demos
+  // Demo dynamic schema values for ConfigForm showcase
+  const [demoFormValues, setDemoFormValues] = useState<Record<string, unknown>>({
+    enableTelemetry: true,
+    endpoint: 'https://telemetry.local/v1',
+    logLevel: 'info',
+    sampleRate: 80,
+    notes: 'Fabric Phase 2 Schema Engine Demo',
+  })
+
+  // Fabric v0.2.0 & v0.3.0 Interaction Demos
   const [demoModalOpen, setDemoModalOpen] = useState(false)
   const [demoModalSize, setDemoModalSize] = useState<'sm' | 'md' | 'lg'>('md')
   const [popoverPlacement, setPopoverPlacement] = useState<'top' | 'bottom' | 'left' | 'right'>('bottom')
@@ -68,7 +122,7 @@ export function ComponentShowcase(props: FabricPageProps) {
     <Page className={styles.showcasePage ?? ''}>
       <PageHeader
         title="全景展台 (Component Showcase)"
-        description="全量呈现 Fabric UI v0.2.0 核心组件、浮层基建 (Modal/Popover/Dropdown) 与交互控件"
+        description="全量呈现 Fabric UI v0.3.0 Phase 2 模式化配置引擎、ModMenu 元数据与浮层基建"
         actions={
           <div className={styles.headerActions}>
             <ToolbarButton
@@ -108,9 +162,34 @@ export function ComponentShowcase(props: FabricPageProps) {
         </div>
       </Section>
 
-      {/* Section 2: Fabric v0.2.0 Overlay Primitives */}
+      {/* Section 2: Phase 2 Schema Config & ConfigForm Demo */}
       <Section
-        title="Fabric v0.2.0 浮层与交互基座 (Overlays & Popovers)"
+        title="Fabric v0.3.0 模式化配置引擎 (Schema Config & ConfigForm)"
+        description="通过 JSON Schema 声明配置，自动生成类型安全的表单并与 Host 端同步持久化"
+        actions={
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <Badge tone={config.status === 'ready' ? 'success' : 'info'}>
+              Store 状态: {config.status}
+            </Badge>
+            {config.dirty && <Badge tone="warning">未保存改动</Badge>}
+          </div>
+        }
+      >
+        <div style={{ backgroundColor: 'var(--dsw-alias-bg-layer-1, #181820)', padding: '16px', borderRadius: '8px', border: '1px solid var(--dsw-alias-border-l2, #333)' }}>
+          <ConfigForm
+            schema={DEMO_SCHEMA}
+            values={demoFormValues as any}
+            onChange={patch => {
+              setDemoFormValues(prev => ({ ...prev, ...patch }))
+              props.notify('ConfigForm 字段已变更', { tone: 'info', timeoutMs: 1500 })
+            }}
+          />
+        </div>
+      </Section>
+
+      {/* Section 3: Fabric v0.2.0 Overlay Primitives */}
+      <Section
+        title="Fabric 浮层与交互基座 (Overlays & Popovers)"
         description="内置 Modal 模态弹窗、Popover 气泡卡片与 Dropdown 下拉菜单，自适应当前主题"
       >
         <div className={styles.overlayGrid}>
@@ -222,7 +301,7 @@ export function ComponentShowcase(props: FabricPageProps) {
         </div>
       </Section>
 
-      {/* Section 3: Z-Index and Design Tokens Reference */}
+      {/* Section 4: Z-Index and Design Tokens Reference */}
       <Section
         title="Fabric 设计系统分层规范 (Z-Index Hierarchy)"
         description="框架内置标准层级常量，杜绝下游插件间的层级冲突"
@@ -273,7 +352,7 @@ export function ComponentShowcase(props: FabricPageProps) {
         </div>
       </Section>
 
-      {/* Section 4: Fabric Badges */}
+      {/* Section 5: Fabric Badges */}
       <Section title="Fabric 徽标状态阶梯 (Badges)" description="五种语义色阶在当前主题下的对比表现">
         <div className={styles.badgeMatrix}>
           <div className={styles.badgeItem}>
@@ -299,7 +378,7 @@ export function ComponentShowcase(props: FabricPageProps) {
         </div>
       </Section>
 
-      {/* Section 5: Buttons and Action Controls */}
+      {/* Section 6: Buttons and Action Controls */}
       <Section title="按钮与工具栏动作 (Buttons & Actions)" description="各级操作按钮与悬停反馈">
         <div className={styles.buttonMatrix}>
           <button type="button" className={styles.btnPrimary}>
@@ -320,7 +399,7 @@ export function ComponentShowcase(props: FabricPageProps) {
         </div>
       </Section>
 
-      {/* Section 6: Interactive Forms */}
+      {/* Section 7: Interactive Forms */}
       <Section title="表单交互控件 (Form Controls)" description="输入框、滑块与复选框">
         <div className={styles.formRow}>
           <div className={styles.formField}>
@@ -361,7 +440,7 @@ export function ComponentShowcase(props: FabricPageProps) {
         </div>
       </Section>
 
-      {/* Section 7: Toast Notifications */}
+      {/* Section 8: Toast Notifications */}
       <Section title="通知消息反馈 (Toast Notifications)" description="触发全局悬浮通知">
         <div className={styles.toastTriggerRow}>
           <button
@@ -395,7 +474,7 @@ export function ComponentShowcase(props: FabricPageProps) {
         </div>
       </Section>
 
-      {/* Section 8: Async Lifecycle States */}
+      {/* Section 9: Async Lifecycle States */}
       <Section
         title="异步生命周期状态 (Async States)"
         description="加载中、空列表与错误回退视图"
@@ -455,7 +534,7 @@ export function ComponentShowcase(props: FabricPageProps) {
         onClose={() => setDemoModalOpen(false)}
         size={demoModalSize}
         title={`Fabric Modal 弹窗示例 (${demoModalSize.toUpperCase()})`}
-        description="展示由 Fabric v0.2.0 提供的标准模态对话框容器"
+        description="展示由 Fabric 提供的标准模态对话框容器"
         footer={
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
             <button

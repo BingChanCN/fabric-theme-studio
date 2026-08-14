@@ -1,36 +1,29 @@
 import { useState } from 'react'
 import type { FabricSettingsProps } from 'fabric/client'
-import { Badge, Section } from 'fabric/ui'
+import type { JsonValue } from 'fabric/sdk'
+import { Badge, Section, useFabricConfig } from 'fabric/ui'
 import type { ThemeDefinition } from '../../types.ts'
 import { useThemeStudio } from '../theme-engine.ts'
 import styles from '../styles/settings.module.css'
 
+export interface ThemeStudioConfigValues {
+  readonly [key: string]: JsonValue
+  defaultTheme?: string
+  autoFollowSystem?: boolean
+  hudEnabled?: boolean
+  transitionSpeed?: number
+}
+
 export function ThemeSettings(props: FabricSettingsProps) {
   const {
     activeTheme,
-    allThemes,
     customThemes,
-    autoFollowSystem,
-    setAutoFollowSystem,
-    setActiveTheme,
     saveCustomTheme,
     resetAll,
   } = useThemeStudio()
+  const config = useFabricConfig<ThemeStudioConfigValues>('fabric-theme-studio')
   const [importJson, setImportJson] = useState('')
   const [importError, setImportError] = useState<string | null>(null)
-
-  const handleSelectDefault = (id: string) => {
-    setActiveTheme(id)
-    props.notify('默认主题设置已更新', { tone: 'success' })
-  }
-
-  const handleToggleAutoFollow = (enabled: boolean) => {
-    setAutoFollowSystem(enabled)
-    props.notify(
-      enabled ? '已启用系统外观自动跟随（暗色/亮色自动切换）' : '已停用系统外观自动跟随',
-      { tone: 'info' },
-    )
-  }
 
   const handleExportAll = () => {
     const data = JSON.stringify(customThemes.length > 0 ? customThemes : [activeTheme], null, 2)
@@ -65,57 +58,36 @@ export function ThemeSettings(props: FabricSettingsProps) {
 
   const handleReset = () => {
     resetAll()
+    config.reset()
     props.notify('已重置所有主题与自定义配置', { tone: 'warning' })
   }
 
   return (
     <div className={styles.settingsContainer}>
-      <Section title="主题偏好设置 (Theme Studio Settings)" description="配置 Fabric Theme Studio 默认主题与导入导出">
-        {/* Auto Follow System Preference */}
+      <Section
+        title="Theme Studio 资产与高级管理"
+        description="管理已保存的自定义主题库、导入导出完整设计资产"
+      >
+        {/* Host Persistence Status */}
         <div className={styles.settingRow}>
           <div className={styles.settingLabelGroup}>
-            <span className={styles.settingTitle}>跟随操作系统深浅色模式</span>
+            <span className={styles.settingTitle}>Fabric 配置中心持久化状态</span>
             <span className={styles.settingDesc}>
-              基于 Fabric Theme Bridge 自动监听 OS prefers-color-scheme，在深浅色间自动流转
+              Schema 配置由 Fabric 自动通过 Host /fabric/config 持久化
             </span>
           </div>
-          <label style={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer', gap: '8px' }}>
-            <input
-              type="checkbox"
-              checked={autoFollowSystem}
-              onChange={e => handleToggleAutoFollow(e.target.checked)}
-              style={{ width: '16px', height: '16px', accentColor: 'var(--dsw-alias-brand-primary)' }}
-            />
-            <span style={{ fontSize: '13px', color: 'var(--dsw-alias-label-primary)' }}>
-              {autoFollowSystem ? '已开启' : '已关闭'}
-            </span>
-          </label>
-        </div>
-
-        {/* Default Startup Theme */}
-        <div className={styles.settingRow}>
-          <div className={styles.settingLabelGroup}>
-            <span className={styles.settingTitle}>默认启动主题</span>
-            <span className={styles.settingDesc}>选择 DSH 启动时自动载入的色彩配置</span>
+          <div className={styles.badgeRow}>
+            <Badge tone={config.status === 'ready' ? 'success' : config.status === 'saving' ? 'info' : 'neutral'}>
+              {config.status === 'ready' ? '已同步 (Synced)' : config.status === 'saving' ? '保存中...' : '本地缓存'}
+            </Badge>
+            {config.dirty && <Badge tone="warning">有未保存改动</Badge>}
           </div>
-          <select
-            className={styles.settingSelect}
-            value={activeTheme.id}
-            disabled={autoFollowSystem}
-            onChange={e => handleSelectDefault(e.target.value)}
-          >
-            {allThemes.map(t => (
-              <option key={t.id} value={t.id}>
-                {t.name} {t.isBuiltin ? '(官方内置)' : '(自定义)'}
-              </option>
-            ))}
-          </select>
         </div>
 
         {/* Custom Themes Counter */}
         <div className={styles.settingRow}>
           <div className={styles.settingLabelGroup}>
-            <span className={styles.settingTitle}>自定义主题数量</span>
+            <span className={styles.settingTitle}>自定义主题资产</span>
             <span className={styles.settingDesc}>当前在本地与服务端已保存的个性化主题</span>
           </div>
           <div className={styles.badgeRow}>
@@ -125,7 +97,7 @@ export function ThemeSettings(props: FabricSettingsProps) {
               className={styles.btnLink}
               onClick={() => props.openFabric('theme-studio')}
             >
-              前往创建 →
+              前往调色盘微调 →
             </button>
           </div>
         </div>
@@ -133,8 +105,8 @@ export function ThemeSettings(props: FabricSettingsProps) {
         {/* Export JSON */}
         <div className={styles.settingRow}>
           <div className={styles.settingLabelGroup}>
-            <span className={styles.settingTitle}>导出主题数据</span>
-            <span className={styles.settingDesc}>将当前主题与自定义主题导出为 JSON</span>
+            <span className={styles.settingTitle}>导出主题资产 (JSON)</span>
+            <span className={styles.settingDesc}>将当前主题与所有自定义主题打包导出</span>
           </div>
           <button type="button" className={styles.btnSecondary} onClick={handleExportAll}>
             复制主题 JSON 到剪贴板

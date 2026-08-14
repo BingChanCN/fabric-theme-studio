@@ -1,12 +1,18 @@
 import { useState } from 'react'
 import type { FabricOverlayProps } from 'fabric/client'
-import { Badge } from 'fabric/ui'
+import { Badge, useFabricConfig } from 'fabric/ui'
 import { calculateContrastRatio, evaluateContrastGrade, useThemeStudio } from '../theme-engine.ts'
 import styles from '../styles/hud.module.css'
 
 export function ThemeOverlayHud(props: FabricOverlayProps) {
   const { activeTheme, presets, setActiveTheme } = useThemeStudio()
   const [isExpanded, setIsExpanded] = useState(false)
+  const config = useFabricConfig<{ hudEnabled?: boolean }>('fabric-theme-studio')
+
+  // Obey schema-driven preference: hide HUD if disabled by user config
+  if (config.values.hudEnabled === false) {
+    return null
+  }
 
   const contrastRatio = calculateContrastRatio(
     activeTheme.tokens.background.bgBase,
@@ -118,17 +124,13 @@ export function ThemeOverlayHud(props: FabricOverlayProps) {
             boxShadow: activeTheme.tokens.shape.shadowMd,
           }}
           onClick={() => setIsExpanded(true)}
-          title="点击打开主题快速浮层 HUD"
         >
           <span
-            className={styles.hudDot}
-            style={{
-              backgroundColor: activeTheme.tokens.brand.brandPrimary,
-              boxShadow: `0 0 6px ${activeTheme.tokens.brand.brandPrimary}`,
-            }}
+            className={styles.pillDot}
+            style={{ backgroundColor: activeTheme.tokens.brand.brandPrimary }}
           />
-          <span className={styles.hudPillText} style={{ color: activeTheme.tokens.text.textPrimary }}>
-            {activeTheme.name}
+          <span className={styles.pillText} style={{ color: activeTheme.tokens.text.textPrimary }}>
+            主题: {activeTheme.name}
           </span>
         </button>
       )}
