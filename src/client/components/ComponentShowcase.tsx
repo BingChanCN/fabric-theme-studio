@@ -178,6 +178,85 @@ export function ComponentShowcase(props: FabricPageProps) {
           <div className={styles.bannerBadges}>
             <Badge tone="info">{activeTheme.category.toUpperCase()}</Badge>
             <Badge tone="success">评级: {activeTheme.contrastRating ?? 'AAA'}</Badge>
+            {activeTheme.material?.backgroundEffect && activeTheme.material.backgroundEffect !== 'none' && (
+              <Badge tone="info">✨ 动态: {activeTheme.material.backgroundEffect}</Badge>
+            )}
+          </div>
+        </div>
+      </Section>
+
+      {/* Section: Material & Ambient Dynamics Showcase */}
+      <Section
+        title="🪟 材质质感与纯 CSS 动态背景展台 (Materials & Dynamics)"
+        description="呈现毛玻璃半透明、物理倒角高光、微噪点纹理与 GPU 硬件加速环境光效"
+      >
+        <div className={styles.materialGrid}>
+          {/* Acrylic Glass Card */}
+          <div className={styles.materialCard}>
+            <div className={styles.materialCardTitle}>
+              <span>✨ 亚克力毛玻璃 (Acrylic Glass)</span>
+              <Badge tone="info">Backdrop Blur</Badge>
+            </div>
+            <p className={styles.materialCardDesc}>
+              利用 backdrop-filter: blur(16px) 透出底层动态背景与色彩，打破扁平单调色块。
+            </p>
+            <div className={styles.acrylicSample}>
+              <span>🪟 这是带有亚克力模糊半透明的浮层卡片，下方内容将产生柔和漫反射效果</span>
+            </div>
+          </div>
+
+          {/* Chamfer Edge Lighting Card */}
+          <div className={styles.materialCard}>
+            <div className={styles.materialCardTitle}>
+              <span>📐 物理倒角高光 (Chamfer Edge)</span>
+              <Badge tone="info">Physical Light</Badge>
+            </div>
+            <p className={styles.materialCardDesc}>
+              结合顶部 1px 受光面微高光与环境遮蔽 (AO) 柔和阴影，增强 UI 面板的实体层深感。
+            </p>
+            <div className={styles.chamferSample}>
+              <span>💡 顶部边缘具备物理倒角微高光，面板轮廓层次清晰分明</span>
+            </div>
+          </div>
+
+          {/* Ambient Dynamics Quick Switch */}
+          <div className={styles.materialCard}>
+            <div className={styles.materialCardTitle}>
+              <span>🌌 动态环境光效 (Pure CSS GPU)</span>
+              <Badge tone="success">0% JS Overhead</Badge>
+            </div>
+            <p className={styles.materialCardDesc}>
+              零 JS 循环占用、后台自动冻结、严格响应减少动画偏好的纯 CSS 硬件加速环境氛围。
+            </p>
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '6px' }}>
+              <button
+                type="button"
+                className={styles.btnSecondary}
+                onClick={() => {
+                  props.notify('已激活极光流光 (Aurora Glow) 动态背景', { tone: 'info' })
+                }}
+              >
+                极光流光
+              </button>
+              <button
+                type="button"
+                className={styles.btnSecondary}
+                onClick={() => {
+                  props.notify('已激活赛博网格 (Cyber Grid) 动态背景', { tone: 'info' })
+                }}
+              >
+                赛博网格
+              </button>
+              <button
+                type="button"
+                className={styles.btnSecondary}
+                onClick={() => {
+                  props.notify('已激活弥散流光 (Mesh Gradient) 动态背景', { tone: 'info' })
+                }}
+              >
+                弥散流光
+              </button>
+            </div>
           </div>
         </div>
       </Section>

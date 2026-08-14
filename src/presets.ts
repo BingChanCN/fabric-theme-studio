@@ -8,6 +8,12 @@ export const DEEPSEEK_CLASSIC: ThemeDefinition = {
   author: 'DeepSeek',
   isBuiltin: true,
   contrastRating: 'AAA',
+  material: {
+    acrylic: true,
+    noiseOpacity: 0.02,
+    edgeHighlight: true,
+    backgroundEffect: 'none',
+  },
   tokens: {
     background: {
       bgBase: 'rgb(15, 17, 21)',
@@ -64,6 +70,14 @@ export const NORD_AURORA: ThemeDefinition = {
   author: 'Arctic Ice Studio',
   isBuiltin: true,
   contrastRating: 'AAA',
+  material: {
+    acrylic: true,
+    noiseOpacity: 0.03,
+    edgeHighlight: true,
+    backgroundEffect: 'aurora',
+    effectIntensity: 0.4,
+    effectSpeed: 'slow',
+  },
   tokens: {
     background: {
       bgBase: '#2e3440',
@@ -120,6 +134,14 @@ export const CYBERPUNK_NEON: ThemeDefinition = {
   author: 'Night City',
   isBuiltin: true,
   contrastRating: 'AAA',
+  material: {
+    acrylic: false,
+    noiseOpacity: 0.04,
+    edgeHighlight: true,
+    backgroundEffect: 'cyber-grid',
+    effectIntensity: 0.7,
+    effectSpeed: 'normal',
+  },
   tokens: {
     background: {
       bgBase: '#0d0d12',
@@ -176,6 +198,14 @@ export const CATPPUCCIN_MOCHA: ThemeDefinition = {
   author: 'Catppuccin Org',
   isBuiltin: true,
   contrastRating: 'AAA',
+  material: {
+    acrylic: true,
+    noiseOpacity: 0.02,
+    edgeHighlight: true,
+    backgroundEffect: 'mesh-gradient',
+    effectIntensity: 0.5,
+    effectSpeed: 'slow',
+  },
   tokens: {
     background: {
       bgBase: '#1e1e2e',
@@ -232,6 +262,12 @@ export const GRUVBOX_RETRO: ThemeDefinition = {
   author: 'morhetz',
   isBuiltin: true,
   contrastRating: 'AAA',
+  material: {
+    acrylic: false,
+    noiseOpacity: 0.05,
+    edgeHighlight: true,
+    backgroundEffect: 'none',
+  },
   tokens: {
     background: {
       bgBase: '#282828',
@@ -288,6 +324,14 @@ export const TOKYO_NIGHT: ThemeDefinition = {
   author: 'enkia',
   isBuiltin: true,
   contrastRating: 'AAA',
+  material: {
+    acrylic: true,
+    noiseOpacity: 0.03,
+    edgeHighlight: true,
+    backgroundEffect: 'aurora',
+    effectIntensity: 0.6,
+    effectSpeed: 'normal',
+  },
   tokens: {
     background: {
       bgBase: '#1a1b26',
@@ -336,6 +380,194 @@ export const TOKYO_NIGHT: ThemeDefinition = {
   },
 }
 
+export const GITHUB_LIGHT: ThemeDefinition = {
+  id: 'github-light',
+  name: 'GitHub Light',
+  category: 'light',
+  description: 'GitHub 官方经典高清晰浅色主题，清爽白底与经典科技蓝',
+  author: 'GitHub',
+  isBuiltin: true,
+  contrastRating: 'AAA',
+  material: {
+    acrylic: false,
+    noiseOpacity: 0,
+    edgeHighlight: false,
+    backgroundEffect: 'none',
+  },
+  tokens: {
+    background: {
+      bgBase: '#ffffff',
+      bgElevated: '#f6f8fa',
+      bgSubtle: '#eaeef2',
+      bgSurface: '#d0d7de',
+      bgSunken: '#f6f8fa',
+    },
+    text: {
+      textPrimary: '#1f2328',
+      textSecondary: '#656d76',
+      textTertiary: '#8c959f',
+      textDisabled: '#afb8c1',
+    },
+    border: {
+      borderBase: '#d0d7de',
+      borderSubtle: '#eaeef2',
+      borderFocus: '#0969da',
+    },
+    brand: {
+      brandPrimary: '#0969da',
+      brandHover: '#218bff',
+      brandActive: '#0550ae',
+      brandSurface: 'rgba(9, 105, 218, 0.12)',
+      brandText: '#0969da',
+    },
+    accent: {
+      accentPrimary: '#1a7f37',
+      accentHover: '#2da44e',
+      accentSurface: 'rgba(26, 127, 55, 0.12)',
+    },
+    status: {
+      success: '#1a7f37',
+      warning: '#9a6700',
+      error: '#cf222e',
+      info: '#0969da',
+    },
+    shape: {
+      radiusSm: '4px',
+      radiusMd: '6px',
+      radiusLg: '10px',
+      shadowSm: '0 1px 0 rgba(31, 35, 40, 0.04)',
+      shadowMd: '0 3px 6px rgba(140, 149, 159, 0.15)',
+      shadowLg: '0 8px 24px rgba(140, 149, 159, 0.2)',
+    },
+  },
+}
+
+export const CATPPUCCIN_LATTE: ThemeDefinition = {
+  id: 'catppuccin-latte',
+  name: 'Catppuccin Latte',
+  category: 'light',
+  description: 'Catppuccin 白昼暖调浅色，淡雅奶泡白与薰衣草粉紫点缀',
+  author: 'Catppuccin Org',
+  isBuiltin: true,
+  contrastRating: 'AAA',
+  material: {
+    acrylic: true,
+    noiseOpacity: 0.015,
+    edgeHighlight: false,
+    backgroundEffect: 'mesh-gradient',
+    effectIntensity: 0.35,
+    effectSpeed: 'slow',
+  },
+  tokens: {
+    background: {
+      bgBase: '#eff1f5',
+      bgElevated: '#e6e9ef',
+      bgSubtle: '#dce0e8',
+      bgSurface: '#ccd0da',
+      bgSunken: '#bcc0cc',
+    },
+    text: {
+      textPrimary: '#4c4f69',
+      textSecondary: '#5c5f77',
+      textTertiary: '#6c6f85',
+      textDisabled: '#9ca0b0',
+    },
+    border: {
+      borderBase: '#ccd0da',
+      borderSubtle: '#dce0e8',
+      borderFocus: '#8839ef',
+    },
+    brand: {
+      brandPrimary: '#8839ef',
+      brandHover: '#9a5bf3',
+      brandActive: '#7222df',
+      brandSurface: 'rgba(136, 57, 239, 0.12)',
+      brandText: '#8839ef',
+    },
+    accent: {
+      accentPrimary: '#ea76cb',
+      accentHover: '#fe640b',
+      accentSurface: 'rgba(234, 118, 203, 0.12)',
+    },
+    status: {
+      success: '#40a02b',
+      warning: '#df8e1d',
+      error: '#d20f39',
+      info: '#1e66f5',
+    },
+    shape: {
+      radiusSm: '6px',
+      radiusMd: '10px',
+      radiusLg: '14px',
+      shadowSm: '0 2px 4px rgba(76, 79, 105, 0.08)',
+      shadowMd: '0 4px 10px rgba(76, 79, 105, 0.12)',
+      shadowLg: '0 10px 20px rgba(76, 79, 105, 0.16)',
+    },
+  },
+}
+
+export const ONE_LIGHT: ThemeDefinition = {
+  id: 'one-light',
+  name: 'Atom One Light',
+  category: 'light',
+  description: 'Atom 标志性经典浅色编辑器主题，细腻中性银灰与明澈靛蓝',
+  author: 'Atom Team',
+  isBuiltin: true,
+  contrastRating: 'AAA',
+  material: {
+    acrylic: false,
+    noiseOpacity: 0.01,
+    edgeHighlight: false,
+    backgroundEffect: 'none',
+  },
+  tokens: {
+    background: {
+      bgBase: '#fafafa',
+      bgElevated: '#f0f0f0',
+      bgSubtle: '#e5e5e6',
+      bgSurface: '#dbdbdc',
+      bgSunken: '#ffffff',
+    },
+    text: {
+      textPrimary: '#383a42',
+      textSecondary: '#696c77',
+      textTertiary: '#a0a1a7',
+      textDisabled: '#c2c2c3',
+    },
+    border: {
+      borderBase: '#dbdbdc',
+      borderSubtle: '#e5e5e6',
+      borderFocus: '#4078f2',
+    },
+    brand: {
+      brandPrimary: '#4078f2',
+      brandHover: '#5c8df5',
+      brandActive: '#265fd9',
+      brandSurface: 'rgba(64, 120, 242, 0.12)',
+      brandText: '#4078f2',
+    },
+    accent: {
+      accentPrimary: '#e45649',
+      accentHover: '#986801',
+      accentSurface: 'rgba(228, 86, 73, 0.12)',
+    },
+    status: {
+      success: '#50a14f',
+      warning: '#c18401',
+      error: '#e45649',
+      info: '#0184bc',
+    },
+    shape: {
+      radiusSm: '4px',
+      radiusMd: '8px',
+      radiusLg: '12px',
+      shadowSm: '0 1px 3px rgba(56, 58, 66, 0.08)',
+      shadowMd: '0 4px 8px rgba(56, 58, 66, 0.12)',
+      shadowLg: '0 10px 18px rgba(56, 58, 66, 0.15)',
+    },
+  },
+}
+
 export const SOLARIZED_LIGHT: ThemeDefinition = {
   id: 'solarized-light',
   name: 'Solarized Light',
@@ -344,6 +576,12 @@ export const SOLARIZED_LIGHT: ThemeDefinition = {
   author: 'Ethan Schoonover',
   isBuiltin: true,
   contrastRating: 'AA',
+  material: {
+    acrylic: false,
+    noiseOpacity: 0.03,
+    edgeHighlight: false,
+    backgroundEffect: 'none',
+  },
   tokens: {
     background: {
       bgBase: '#fdf6e3',
@@ -400,6 +638,12 @@ export const MONOCHROME_PRO: ThemeDefinition = {
   author: 'Minimalist Design',
   isBuiltin: true,
   contrastRating: 'AAA',
+  material: {
+    acrylic: false,
+    noiseOpacity: 0,
+    edgeHighlight: true,
+    backgroundEffect: 'none',
+  },
   tokens: {
     background: {
       bgBase: '#000000',
@@ -455,6 +699,9 @@ export const BUILTIN_PRESETS: readonly ThemeDefinition[] = [
   CATPPUCCIN_MOCHA,
   GRUVBOX_RETRO,
   TOKYO_NIGHT,
+  GITHUB_LIGHT,
+  CATPPUCCIN_LATTE,
+  ONE_LIGHT,
   SOLARIZED_LIGHT,
   MONOCHROME_PRO,
 ]

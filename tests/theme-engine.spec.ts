@@ -188,6 +188,23 @@ describe('ThemeStudioEngine State Management & Fabric Bridge', () => {
     }
   })
 
+  it('generates material variables and background keyframes', () => {
+    const css = generateCssVariables(CYBERPUNK_NEON.tokens, CYBERPUNK_NEON.material, false)
+    expect(css).toContain('--dsw-material-noise-opacity')
+    expect(css).toContain('--dsw-material-acrylic-blur')
+    expect(css).toContain('#fabric-theme-backdrop')
+    expect(css).toContain('fts-scanline')
+    expect(css).toContain('fts-aurora-drift')
+  })
+
+  it('controls dynamic effects toggle', () => {
+    expect(engine.isDynamicEffectsEnabled()).toBe(true)
+    engine.setDynamicEffectsEnabled(false)
+    expect(engine.isDynamicEffectsEnabled()).toBe(false)
+    engine.setDynamicEffectsEnabled(true)
+    expect(engine.isDynamicEffectsEnabled()).toBe(true)
+  })
+
   it('cleans up tokens on dispose', () => {
     engine.init(mockThemeService)
     engine.dispose()

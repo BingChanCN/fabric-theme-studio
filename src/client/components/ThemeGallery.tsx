@@ -203,10 +203,26 @@ export function ThemeGallery(props: FabricPageProps) {
                       </span>
                     </div>
                     <div className={styles.badgeGroup}>
-                      <Badge tone={grade === 'AAA' ? 'success' : grade === 'AA' ? 'info' : 'warning'}>
+                      <Badge
+                        tone={
+                          grade === 'AAA' ? 'success' : grade === 'AA' ? 'info' : 'warning'
+                        }
+                      >
                         {grade} ({ratio}:1)
                       </Badge>
                       <Badge tone="neutral">{theme.category}</Badge>
+                      {theme.material?.backgroundEffect === 'aurora' && (
+                        <Badge tone="info">✨ 极光</Badge>
+                      )}
+                      {theme.material?.backgroundEffect === 'cyber-grid' && (
+                        <Badge tone="info">⚡ 赛博网格</Badge>
+                      )}
+                      {theme.material?.backgroundEffect === 'mesh-gradient' && (
+                        <Badge tone="info">🎨 弥散流光</Badge>
+                      )}
+                      {theme.material?.acrylic && (
+                        <Badge tone="neutral">🪟 毛玻璃</Badge>
+                      )}
                     </div>
                   </div>
 

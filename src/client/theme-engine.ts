@@ -1,12 +1,37 @@
 import { useEffect, useState } from 'react'
 import type { FabricThemeService } from 'fabric/client'
-import { BUILTIN_PRESETS, DEEPSEEK_CLASSIC, NORD_AURORA, SOLARIZED_LIGHT } from '../presets.ts'
-import type { ContrastGrade, ThemeDefinition, ThemeStudioStatePayload, ThemeTokens } from '../types.ts'
+import {
+  BUILTIN_PRESETS,
+  CATPPUCCIN_LATTE,
+  CATPPUCCIN_MOCHA,
+  CYBERPUNK_NEON,
+  DEEPSEEK_CLASSIC,
+  GITHUB_LIGHT,
+  GRUVBOX_RETRO,
+  MONOCHROME_PRO,
+  NORD_AURORA,
+  ONE_LIGHT,
+  SOLARIZED_LIGHT,
+  TOKYO_NIGHT,
+} from '../presets.ts'
+import type {
+  BackgroundEffect,
+  ContrastGrade,
+  EffectSpeed,
+  ThemeDefinition,
+  ThemeMaterial,
+  ThemeStudioStatePayload,
+  ThemeTokens,
+} from '../types.ts'
 
 const STORAGE_KEY_ACTIVE = 'fabric_theme_studio_active_id'
 const STORAGE_KEY_CUSTOM = 'fabric_theme_studio_custom_themes'
 const STORAGE_KEY_AUTO = 'fabric_theme_studio_auto_system'
+const STORAGE_KEY_EFFECT_ENABLED = 'fabric_theme_studio_effects_enabled'
+
 const STYLE_TAG_ID = 'fabric-theme-studio-injected-style'
+const BACKDROP_CONTAINER_ID = 'fabric-theme-backdrop'
+const NOISE_CONTAINER_ID = 'fabric-theme-backdrop-noise'
 
 /** Parse color string (rgb, rgba, hex) to RGB channels [0..255]. */
 export function parseColorToRgb(color: string): [number, number, number] | null {
@@ -70,7 +95,15 @@ export function evaluateContrastGrade(ratio: number): ContrastGrade {
 }
 
 /** Generate a complete dictionary of tokens for FabricThemeService and CSS variables. */
-export function generateTokenDictionary(tokens: ThemeTokens): Record<string, string> {
+export function generateTokenDictionary(
+  tokens: ThemeTokens,
+  material?: ThemeMaterial,
+  isLight = false,
+): Record<string, string> {
+  const acrylic = material?.acrylic ?? false
+  const noiseOpacity = material?.noiseOpacity ?? 0
+  const edgeHighlight = material?.edgeHighlight ?? false
+
   return {
     // DSH Core Background & Container Aliases
     '--dsw-alias-bg-base': tokens.background.bgBase,
@@ -81,6 +114,18 @@ export function generateTokenDictionary(tokens: ThemeTokens): Record<string, str
     '--dsw-alias-bg-module-platform': tokens.background.bgElevated,
     '--dsw-alias-bg-multi-select': tokens.background.bgSurface,
     '--dsw-alias-bg-skeleton': tokens.background.bgSubtle,
+
+    // Material system tokens
+    '--dsw-material-acrylic-blur': acrylic ? '16px' : '0px',
+    '--dsw-material-acrylic-bg': acrylic
+      ? isLight
+        ? 'rgba(255, 255, 255, 0.75)'
+        : 'rgba(20, 22, 28, 0.75)'
+      : tokens.background.bgElevated,
+    '--dsw-material-noise-opacity': String(noiseOpacity),
+    '--dsw-material-edge-highlight': edgeHighlight
+      ? 'inset 0 1px 0 0 rgba(255, 255, 255, 0.12)'
+      : 'none',
 
     // DSH Specific UI Components
     '--dsw-specific-sidebar-fill': tokens.background.bgElevated,
@@ -233,8 +278,12 @@ export function generateTokenDictionary(tokens: ThemeTokens): Record<string, str
 }
 
 /** Generate CSS variables mapping for a theme covering DSH aliases and specific variables. */
-export function generateCssVariables(tokens: ThemeTokens): string {
-  const dict = generateTokenDictionary(tokens)
+export function generateCssVariables(
+  tokens: ThemeTokens,
+  material?: ThemeMaterial,
+  isLight = false,
+): string {
+  const dict = generateTokenDictionary(tokens, material, isLight)
   const lines: string[] = [
     ':root, body, body[data-ds-dark-theme], body[data-ds-light-theme], [data-fabric-theme] {',
   ]
@@ -242,6 +291,140 @@ export function generateCssVariables(tokens: ThemeTokens): string {
     lines.push(`  ${k}: ${v} !important;`)
   }
   lines.push('}')
+
+  // Append backdrop and ambient animation keyframes
+  lines.push(`
+#${BACKDROP_CONTAINER_ID} {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: -1;
+  overflow: hidden;
+  opacity: var(--dsw-ambient-intensity, 0.5);
+  transition: opacity 0.5s ease;
+}
+
+#${BACKDROP_CONTAINER_ID}[data-effect="none"] {
+  display: none;
+}
+
+#${NOISE_CONTAINER_ID} {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 999999;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128' viewBox='0 0 128 128'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.7'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  mix-blend-mode: overlay;
+  opacity: var(--dsw-material-noise-opacity, 0);
+  transition: opacity 0.3s ease;
+}
+
+/* Aurora effect */
+#${BACKDROP_CONTAINER_ID}[data-effect="aurora"] .ambient-orb-1 {
+  position: absolute;
+  top: -20%;
+  left: -10%;
+  width: 75vw;
+  height: 75vw;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--dsw-alias-brand-primary, #4176e6) 0%, transparent 65%);
+  filter: blur(80px);
+  opacity: 0.25;
+  animation: fts-aurora-drift 24s ease-in-out infinite alternate;
+}
+
+#${BACKDROP_CONTAINER_ID}[data-effect="aurora"] .ambient-orb-2 {
+  position: absolute;
+  bottom: -20%;
+  right: -10%;
+  width: 65vw;
+  height: 65vw;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--dsw-color-accent-primary, #ff77c6) 0%, transparent 65%);
+  filter: blur(90px);
+  opacity: 0.2;
+  animation: fts-aurora-orbit 30s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes fts-aurora-drift {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(12vw, 10vh, 0) scale(1.12); }
+  100% { transform: translate3d(-8vw, 14vh, 0) scale(0.96); }
+}
+
+@keyframes fts-aurora-orbit {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  100% { transform: translate3d(-14vw, -10vh, 0) rotate(180deg); }
+}
+
+/* Cyber Grid effect */
+#${BACKDROP_CONTAINER_ID}[data-effect="cyber-grid"] {
+  background: 
+    linear-gradient(rgba(255, 0, 127, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 36px 36px;
+}
+
+#${BACKDROP_CONTAINER_ID}[data-effect="cyber-grid"]::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 255, 255, 0.08) 50%, transparent 100%);
+  background-size: 100% 200%;
+  animation: fts-scanline 10s linear infinite;
+}
+
+@keyframes fts-scanline {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 200%; }
+}
+
+/* Mesh Gradient effect */
+#${BACKDROP_CONTAINER_ID}[data-effect="mesh-gradient"] {
+  background: radial-gradient(at 0% 0%, var(--dsw-alias-brand-primary, #cba6f7) 0px, transparent 50%),
+              radial-gradient(at 100% 0%, var(--dsw-color-accent-primary, #f5c2e7) 0px, transparent 50%),
+              radial-gradient(at 50% 100%, var(--dsw-alias-brand-hover, #89b4fa) 0px, transparent 50%);
+  filter: blur(60px);
+  opacity: 0.18;
+  animation: fts-mesh-pulse 16s ease-in-out infinite alternate;
+}
+
+@keyframes fts-mesh-pulse {
+  0% { transform: scale(1); filter: blur(60px) hue-rotate(0deg); }
+  100% { transform: scale(1.06); filter: blur(70px) hue-rotate(30deg); }
+}
+
+/* Spotlight effect */
+#${BACKDROP_CONTAINER_ID}[data-effect="spotlight"] {
+  background: radial-gradient(circle at 50% 30%, var(--dsw-alias-brand-primary, #4176e6) 0%, transparent 60%);
+  filter: blur(80px);
+  opacity: 0.15;
+}
+
+/* Paused when hidden or reduced motion */
+#${BACKDROP_CONTAINER_ID}[data-paused="true"] *,
+#${BACKDROP_CONTAINER_ID}[data-paused="true"]::after {
+  animation-play-state: paused !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #${BACKDROP_CONTAINER_ID} *,
+  #${BACKDROP_CONTAINER_ID}::after {
+    animation: none !important;
+  }
+}
+`)
+
   return lines.join('\n')
 }
 
@@ -252,10 +435,11 @@ export class ThemeStudioEngine {
   private activeThemeId: string = DEEPSEEK_CLASSIC.id
   private activeTheme: ThemeDefinition = DEEPSEEK_CLASSIC
   private customThemes: ThemeDefinition[] = []
-  private autoFollowSystem: boolean = false
+  private autoFollowSystem = false
+  private dynamicEffectsEnabled = true
   private listeners: Set<ThemeStudioListener> = new Set()
-  private initialized: boolean = false
-  private syncSeq: number = 0
+  private initialized = false
+  private syncSeq = 0
   private fabricThemeService: FabricThemeService | undefined
   private themeTeardown: (() => void) | undefined
 
@@ -277,6 +461,19 @@ export class ThemeStudioEngine {
         if (this.autoFollowSystem) {
           const targetId = dark ? NORD_AURORA.id : SOLARIZED_LIGHT.id
           this.setActiveTheme(targetId)
+        }
+      })
+    }
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', () => {
+        const backdrop = document.getElementById(BACKDROP_CONTAINER_ID)
+        if (backdrop) {
+          if (document.hidden) {
+            backdrop.setAttribute('data-paused', 'true')
+          } else {
+            backdrop.removeAttribute('data-paused')
+          }
         }
       })
     }
@@ -306,6 +503,17 @@ export class ThemeStudioEngine {
 
   public isAutoFollowSystem(): boolean {
     return this.autoFollowSystem
+  }
+
+  public isDynamicEffectsEnabled(): boolean {
+    return this.dynamicEffectsEnabled
+  }
+
+  public setDynamicEffectsEnabled(enabled: boolean): void {
+    this.dynamicEffectsEnabled = enabled
+    this.persistToStorage()
+    this.applyThemeToDom(this.activeTheme)
+    this.notify()
   }
 
   public setAutoFollowSystem(enabled: boolean): void {
@@ -363,7 +571,6 @@ export class ThemeStudioEngine {
       this.customThemes.push(normalized)
     }
 
-    this.syncSeq++
     this.activeThemeId = normalized.id
     this.activeTheme = normalized
     this.applyThemeToDom(normalized)
@@ -373,29 +580,19 @@ export class ThemeStudioEngine {
   }
 
   public deleteCustomTheme(themeId: string): boolean {
-    const initialLen = this.customThemes.length
+    const prevLen = this.customThemes.length
     this.customThemes = this.customThemes.filter(t => t.id !== themeId)
-    if (this.customThemes.length === initialLen) return false
+    if (this.customThemes.length === prevLen) return false
 
-    this.syncSeq++
     if (this.activeThemeId === themeId) {
       this.setActiveTheme(DEEPSEEK_CLASSIC.id)
     } else {
       this.persistToStorage()
       this.notify()
     }
+
     void this.pushDeleteToHost(themeId)
     return true
-  }
-
-  public resetAll(): void {
-    this.syncSeq++
-    this.customThemes = []
-    this.autoFollowSystem = false
-    this.setActiveTheme(DEEPSEEK_CLASSIC.id)
-    this.persistToStorage()
-    this.notify()
-    void this.pushResetToHost()
   }
 
   public dispose(): void {
@@ -404,30 +601,51 @@ export class ThemeStudioEngine {
       this.themeTeardown = undefined
     }
     if (this.fabricThemeService) {
-      this.fabricThemeService.clearTokens('fabric-theme-studio')
+      try {
+        this.fabricThemeService.clearTokens('fabric-theme-studio')
+      } catch {
+        // ignore
+      }
     }
-    if (typeof document !== 'undefined') {
-      const tag = document.getElementById(STYLE_TAG_ID)
-      if (tag) tag.remove()
-      document.body.removeAttribute('data-fabric-theme')
-      document.body.removeAttribute('data-fabric-theme-mode')
-    }
-    this.listeners.clear()
     this.initialized = false
   }
 
-  private applyThemeToDom(theme: ThemeDefinition): void {
-    const dict = generateTokenDictionary(theme.tokens)
+  public resetAll(): void {
+    this.customThemes = []
+    this.autoFollowSystem = false
+    this.dynamicEffectsEnabled = true
+    this.setActiveTheme(DEEPSEEK_CLASSIC.id)
+    this.persistToStorage()
+    this.notify()
+    void this.pushResetToHost()
+  }
 
-    // Primary path: Use Fabric Theme Bridge service if available
+  public cycleNextTheme(): ThemeDefinition {
+    const all = this.getAllThemes()
+    const currentIndex = all.findIndex(t => t.id === this.activeThemeId)
+    const nextIndex = (currentIndex + 1) % all.length
+    const nextTheme = all[nextIndex] ?? DEEPSEEK_CLASSIC
+    this.setActiveTheme(nextTheme.id)
+    return nextTheme
+  }
+
+  private applyThemeToDom(theme: ThemeDefinition): void {
+    const isLight = theme.category === 'light'
+    const dict = generateTokenDictionary(theme.tokens, theme.material, isLight)
+
+    // Primary path: Fabric Theme Bridge (Priority 100, global scope)
     if (this.fabricThemeService) {
-      this.fabricThemeService.setTokens('fabric-theme-studio', dict, {
-        priority: 100,
-        scope: 'global',
-      })
+      try {
+        this.fabricThemeService.setTokens('fabric-theme-studio', dict, {
+          priority: 100,
+          scope: 'global',
+        })
+      } catch (err) {
+        console.warn('fabric-theme-studio: failed to set tokens on FabricThemeService', err)
+      }
     }
 
-    // Secondary path: Maintain DOM data attributes and fallback style tag
+    // Secondary path: Maintain DOM data attributes, fallback style tag and backdrop
     if (typeof document !== 'undefined') {
       let styleTag = document.getElementById(STYLE_TAG_ID) as HTMLStyleElement | null
       if (!styleTag) {
@@ -436,7 +654,7 @@ export class ThemeStudioEngine {
         styleTag.setAttribute('data-plugin', 'fabric-theme-studio')
       }
       document.head?.appendChild(styleTag)
-      styleTag.textContent = generateCssVariables(theme.tokens)
+      styleTag.textContent = generateCssVariables(theme.tokens, theme.material, isLight)
 
       document.body.setAttribute('data-fabric-theme', theme.id)
       document.body.setAttribute('data-fabric-theme-mode', theme.category)
@@ -447,6 +665,42 @@ export class ThemeStudioEngine {
         document.body.setAttribute('data-ds-dark-theme', '')
         document.body.removeAttribute('data-ds-light-theme')
       }
+
+      // Material backdrop container management
+      let backdrop = document.getElementById(BACKDROP_CONTAINER_ID)
+      if (!backdrop) {
+        backdrop = document.createElement('div')
+        backdrop.id = BACKDROP_CONTAINER_ID
+        backdrop.innerHTML = `
+          <div class="ambient-orb-1"></div>
+          <div class="ambient-orb-2"></div>
+        `
+        document.body.prepend(backdrop)
+      }
+
+      const effect: BackgroundEffect =
+        this.dynamicEffectsEnabled && theme.material?.backgroundEffect
+          ? theme.material.backgroundEffect
+          : 'none'
+
+      backdrop.setAttribute('data-effect', effect)
+      backdrop.setAttribute('data-speed', theme.material?.effectSpeed ?? 'normal')
+      backdrop.style.setProperty(
+        '--dsw-ambient-intensity',
+        String(theme.material?.effectIntensity ?? 0.5),
+      )
+
+      // Noise texture overlay container management
+      let noiseEl = document.getElementById(NOISE_CONTAINER_ID)
+      if (!noiseEl) {
+        noiseEl = document.createElement('div')
+        noiseEl.id = NOISE_CONTAINER_ID
+        document.body.prepend(noiseEl)
+      }
+      noiseEl.style.setProperty(
+        '--dsw-material-noise-opacity',
+        String(theme.material?.noiseOpacity ?? 0),
+      )
     }
   }
 
@@ -466,6 +720,10 @@ export class ThemeStudioEngine {
       const savedAuto = localStorage.getItem(STORAGE_KEY_AUTO)
       if (savedAuto) {
         this.autoFollowSystem = savedAuto === 'true'
+      }
+      const savedEffects = localStorage.getItem(STORAGE_KEY_EFFECT_ENABLED)
+      if (savedEffects) {
+        this.dynamicEffectsEnabled = savedEffects === 'true'
       }
       const savedCustom = localStorage.getItem(STORAGE_KEY_CUSTOM)
       if (savedCustom) {
@@ -494,6 +752,7 @@ export class ThemeStudioEngine {
       localStorage.setItem(STORAGE_KEY_ACTIVE, this.activeThemeId)
       localStorage.setItem(STORAGE_KEY_CUSTOM, JSON.stringify(this.customThemes))
       localStorage.setItem(STORAGE_KEY_AUTO, String(this.autoFollowSystem))
+      localStorage.setItem(STORAGE_KEY_EFFECT_ENABLED, String(this.dynamicEffectsEnabled))
     } catch {
       // ignore storage access errors
     }
@@ -533,11 +792,11 @@ export class ThemeStudioEngine {
     try {
       await fetch('/api/theme-studio/active', {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ themeId }),
       })
     } catch {
-      // ignore host errors
+      // best-effort
     }
   }
 
@@ -546,22 +805,24 @@ export class ThemeStudioEngine {
     try {
       await fetch('/api/theme-studio/custom', {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ theme }),
       })
     } catch {
-      // ignore host errors
+      // best-effort
     }
   }
 
   private async pushDeleteToHost(themeId: string): Promise<void> {
     if (typeof fetch === 'undefined') return
     try {
-      await fetch(`/api/theme-studio/custom?themeId=${encodeURIComponent(themeId)}`, {
+      await fetch('/api/theme-studio/custom', {
         method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ themeId }),
       })
     } catch {
-      // ignore host errors
+      // best-effort
     }
   }
 
@@ -570,51 +831,57 @@ export class ThemeStudioEngine {
     try {
       await fetch('/api/theme-studio/reset', { method: 'POST' })
     } catch {
-      // ignore host errors
+      // best-effort
     }
   }
 }
 
-/** Global theme engine singleton for the client bundle. */
+/** Global singleton instance of ThemeStudioEngine. */
 export const themeEngine = new ThemeStudioEngine()
 
-/** Custom hook to consume theme studio reactive state. */
-export function useThemeStudio(): {
-  activeTheme: ThemeDefinition
+export interface UseThemeStudioResult {
   activeThemeId: string
-  allThemes: readonly ThemeDefinition[]
+  activeTheme: ThemeDefinition
   presets: readonly ThemeDefinition[]
   customThemes: readonly ThemeDefinition[]
+  allThemes: readonly ThemeDefinition[]
   autoFollowSystem: boolean
-  setAutoFollowSystem: (enabled: boolean) => void
+  dynamicEffectsEnabled: boolean
   setActiveTheme: (id: string) => boolean
   applyCustomThemeDraft: (theme: ThemeDefinition) => void
   saveCustomTheme: (theme: ThemeDefinition) => void
   deleteCustomTheme: (id: string) => boolean
+  setAutoFollowSystem: (enabled: boolean) => void
+  setDynamicEffectsEnabled: (enabled: boolean) => void
   resetAll: () => void
-} {
-  const [, setVersion] = useState(0)
+  cycleNextTheme: () => ThemeDefinition
+}
+
+/** React hook to consume ThemeStudioEngine state. */
+export function useThemeStudio(): UseThemeStudioResult {
+  const [, setTick] = useState(0)
 
   useEffect(() => {
-    themeEngine.init()
-    const unsubscribe = themeEngine.subscribe(() => {
-      setVersion(v => v + 1)
+    return themeEngine.subscribe(() => {
+      setTick(t => t + 1)
     })
-    return unsubscribe
   }, [])
 
   return {
-    activeTheme: themeEngine.getActiveTheme(),
     activeThemeId: themeEngine.getActiveThemeId(),
-    allThemes: themeEngine.getAllThemes(),
+    activeTheme: themeEngine.getActiveTheme(),
     presets: themeEngine.getPresets(),
     customThemes: themeEngine.getCustomThemes(),
+    allThemes: themeEngine.getAllThemes(),
     autoFollowSystem: themeEngine.isAutoFollowSystem(),
-    setAutoFollowSystem: (enabled: boolean) => themeEngine.setAutoFollowSystem(enabled),
+    dynamicEffectsEnabled: themeEngine.isDynamicEffectsEnabled(),
     setActiveTheme: (id: string) => themeEngine.setActiveTheme(id),
     applyCustomThemeDraft: (theme: ThemeDefinition) => themeEngine.applyCustomThemeDraft(theme),
     saveCustomTheme: (theme: ThemeDefinition) => themeEngine.saveCustomTheme(theme),
     deleteCustomTheme: (id: string) => themeEngine.deleteCustomTheme(id),
+    setAutoFollowSystem: (enabled: boolean) => themeEngine.setAutoFollowSystem(enabled),
+    setDynamicEffectsEnabled: (enabled: boolean) => themeEngine.setDynamicEffectsEnabled(enabled),
     resetAll: () => themeEngine.resetAll(),
+    cycleNextTheme: () => themeEngine.cycleNextTheme(),
   }
 }

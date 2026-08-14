@@ -4,6 +4,28 @@ export type ThemeCategory = 'dark' | 'light' | 'special'
 /** WCAG Contrast certification grade. */
 export type ContrastGrade = 'AAA' | 'AA' | 'Pass' | 'Fail'
 
+/** Dynamic background effect kinds. */
+export type BackgroundEffect = 'none' | 'aurora' | 'cyber-grid' | 'mesh-gradient' | 'spotlight'
+
+/** Speed multiplier for background ambient animations. */
+export type EffectSpeed = 'slow' | 'normal' | 'fast'
+
+/** Material texture and dynamic ambient configuration. */
+export interface ThemeMaterial {
+  /** Enables backdrop-filter blur on overlays, modals and toolbars. */
+  acrylic?: boolean
+  /** Opacity of SVG noise texture (0 ~ 0.1, default 0). */
+  noiseOpacity?: number
+  /** Enables chamfer edge lighting with inset physical high-contrast shadows. */
+  edgeHighlight?: boolean
+  /** Dynamic ambient background animation effect. */
+  backgroundEffect?: BackgroundEffect
+  /** Dynamic ambient background animation intensity (0 ~ 1, default 0.5). */
+  effectIntensity?: number
+  /** Speed multiplier for background animations. */
+  effectSpeed?: EffectSpeed
+}
+
 /** Tokens for core surfaces and backgrounds. */
 export interface ThemeBackgroundTokens {
   bgBase: string
@@ -82,7 +104,22 @@ export interface ThemeDefinition {
   author?: string
   isBuiltin?: boolean
   contrastRating?: ContrastGrade
+  material?: ThemeMaterial
   tokens: ThemeTokens
+}
+
+/** Serializable user custom theme structure. */
+export interface CustomTheme {
+  id: string
+  name: string
+  author?: string
+  description?: string
+  tags?: string[]
+  isDark: boolean
+  material?: ThemeMaterial
+  createdAt?: string
+  updatedAt?: string
+  tokens: Record<string, string>
 }
 
 /** Host API payloads for theme studio. */

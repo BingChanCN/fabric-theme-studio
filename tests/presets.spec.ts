@@ -1,12 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import {
   BUILTIN_PRESETS,
+  CATPPUCCIN_LATTE,
   CATPPUCCIN_MOCHA,
   CYBERPUNK_NEON,
   DEEPSEEK_CLASSIC,
+  GITHUB_LIGHT,
   GRUVBOX_RETRO,
   MONOCHROME_PRO,
   NORD_AURORA,
+  ONE_LIGHT,
   SOLARIZED_LIGHT,
   TOKYO_NIGHT,
 } from '../src/presets.ts'
@@ -42,8 +45,8 @@ function assertValidThemeTokens(theme: ThemeDefinition): void {
 }
 
 describe('Preset Themes Inventory', () => {
-  it('contains all 8 curated presets', () => {
-    expect(BUILTIN_PRESETS).toHaveLength(8)
+  it('contains all 11 curated presets', () => {
+    expect(BUILTIN_PRESETS).toHaveLength(11)
   })
 
   it('has unique IDs for all presets', () => {
@@ -83,6 +86,24 @@ describe('Preset Themes Inventory', () => {
   it('verifies Tokyo Night definition', () => {
     expect(TOKYO_NIGHT.id).toBe('tokyo-night')
     assertValidThemeTokens(TOKYO_NIGHT)
+  })
+
+  it('verifies GitHub Light definition', () => {
+    expect(GITHUB_LIGHT.id).toBe('github-light')
+    expect(GITHUB_LIGHT.category).toBe('light')
+    assertValidThemeTokens(GITHUB_LIGHT)
+  })
+
+  it('verifies Catppuccin Latte definition', () => {
+    expect(CATPPUCCIN_LATTE.id).toBe('catppuccin-latte')
+    expect(CATPPUCCIN_LATTE.category).toBe('light')
+    assertValidThemeTokens(CATPPUCCIN_LATTE)
+  })
+
+  it('verifies One Light definition', () => {
+    expect(ONE_LIGHT.id).toBe('one-light')
+    expect(ONE_LIGHT.category).toBe('light')
+    assertValidThemeTokens(ONE_LIGHT)
   })
 
   it('verifies Solarized Light definition', () => {

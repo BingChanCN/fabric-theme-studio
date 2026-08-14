@@ -42,8 +42,8 @@ export function apply(ctx: ClientContext): void {
     kind: 'mod',
     id: 'fabric-theme-studio',
     name: 'Fabric Theme Studio',
-    version: '0.4.0',
-    description: '交互式主题调色工坊与个性化设计系统展台，驱动 DSH 宿主与 Fabric 扩展组件',
+    version: '0.5.0',
+    description: '交互式主题调色工坊、智能色彩和声生成、VSCode 主题转换与纯 CSS 硬件加速动态材质',
     icon: React.createElement(PaletteIcon, { size: 16 }),
   })
 
@@ -66,9 +66,18 @@ export function apply(ctx: ClientContext): void {
           { label: 'Catppuccin Mocha (摩卡暖紫)', value: 'catppuccin-mocha' },
           { label: 'Gruvbox Retro (复古暖棕)', value: 'gruvbox-retro' },
           { label: 'Tokyo Night (东京之夜)', value: 'tokyo-night' },
+          { label: 'GitHub Light (GitHub 浅色)', value: 'github-light' },
+          { label: 'Catppuccin Latte (奶泡白昼)', value: 'catppuccin-latte' },
+          { label: 'Atom One Light (标志浅色)', value: 'one-light' },
           { label: 'Solarized Light (日耀浅色)', value: 'solarized-light' },
           { label: 'Monochrome Pro (极致单色)', value: 'monochrome-pro' },
         ],
+      },
+      dynamicEffectsEnabled: {
+        type: 'boolean',
+        title: '启用纯 CSS 硬件加速动态背景',
+        description: '在背景渲染极光流光、赛博网格与弥散渐变等低功耗环境光效',
+        default: true,
       },
       autoFollowSystem: {
         type: 'boolean',
@@ -193,7 +202,7 @@ export function apply(ctx: ClientContext): void {
     order: 0,
     label: '主题工坊',
     icon: React.createElement(PaletteIcon, { size: 16 }),
-    badge: '8',
+    badge: '11',
     keepAlive: true,
     pluginId: 'fabric-theme-studio',
     component: ThemeGallery,
