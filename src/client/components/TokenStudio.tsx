@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react'
-import { Badge, Modal, Page, PageHeader, Section, ToolbarButton } from 'fabric/ui'
+import { Badge, Modal, Page, PageHeader, Section, ToolbarButton } from '@dsh-do/fabric/ui'
 import {
   deriveThemeFromSeed,
   extractColorsFromImageData,

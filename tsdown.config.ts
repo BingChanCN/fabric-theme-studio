@@ -1,5 +1,5 @@
 import { defineConfig } from 'tsdown'
-import { fabricPlugin } from 'fabric/build'
+import { fabricPlugin } from '@dsh-do/fabric/build'
 
 export default defineConfig(fabricPlugin({
   id: 'fabric-theme-studio',

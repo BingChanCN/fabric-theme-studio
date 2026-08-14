@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { FabricThemeService } from 'fabric/client'
+import type { FabricThemeService } from '@dsh-do/fabric/client'
 import {
   calculateContrastRatio,
   calculateLuminance,

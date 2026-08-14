@@ -1,6 +1,6 @@
 import React from 'react'
 import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
-import type {} from 'fabric/client'
+import type {} from '@dsh-do/fabric/client'
 import type { ThemeDefinition } from '../types.ts'
 import { ComponentShowcase } from './components/ComponentShowcase.tsx'
 import { ThemeGallery } from './components/ThemeGallery.tsx'

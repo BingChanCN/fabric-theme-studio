@@ -1,7 +1,9 @@
 {
-  "name": "fabric-theme-studio",
+  "name": "@dsh-do/fabric-theme-studio",
   "version": "0.6.0",
-  "private": true,
+  "publishConfig": {
+    "access": "public"
+  },
   "description": "Interactive theme studio and personalization showcase for DeepSeek Harness built on Fabric",
   "type": "module",
   "main": "lib/index.js",
@@ -37,7 +39,7 @@
     "@deepseek-ai/dsh-client-ui-primitives": "^0.1.0-rc.6",
     "@deepseek-ai/dsh-client-ui-slots": "^0.1.0-rc.6",
     "@deepseek-ai/dsh-host-webserver": "^0.1.0-rc.6",
-    "fabric": "^0.4.0",
+    "@dsh-do/fabric": "^0.4.0",
     "react": "^18.2.0"
   },
   "devDependencies": {
@@ -49,7 +51,7 @@
     "@types/node": "^22.20.0",
     "@types/react": "~18.3.1",
     "@types/react-dom": "~18.3.1",
-    "fabric": "link:../fabric",
+    "@dsh-do/fabric": "link:../fabric",
     "lightningcss": "^1.30.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

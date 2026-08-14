@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import type { FabricOverlayProps } from 'fabric/client'
-import { Badge, useFabricConfig } from 'fabric/ui'
+import type { FabricOverlayProps } from '@dsh-do/fabric/client'
+import { Badge, useFabricConfig } from '@dsh-do/fabric/ui'
 import { calculateContrastRatio, evaluateContrastGrade, useThemeStudio } from '../theme-engine.ts'
 import styles from '../styles/hud.module.css'
 

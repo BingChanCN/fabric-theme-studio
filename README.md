@@ -28,7 +28,7 @@ pnpm pack --pack-destination .pack-probe
 ### 2. 添加到 DSH Profile
 
 ```bash
-dsh plugin --profile web add "D:/dsh-dev/fabric-theme-studio/.pack-probe/fabric-theme-studio-0.1.0.tgz"
+dsh plugin --profile web add "D:/dsh-dev/fabric-theme-studio/.pack-probe/dsh-do-fabric-theme-studio-0.6.0.tgz"
 dsh --profile web
 ```
 
@@ -43,7 +43,7 @@ pnpm run test        # Vitest 单元与构建契约测试套件
 
 ```tsx
 import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
-import type {} from 'fabric/client'
+import type {} from '@dsh-do/fabric/client'
 import { ThemeGallery } from './components/ThemeGallery.tsx'
 import { TokenStudio } from './components/TokenStudio.tsx'
 import { ComponentShowcase } from './components/ComponentShowcase.tsx'

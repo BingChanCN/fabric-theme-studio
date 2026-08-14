@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
-import type { FabricPageProps } from 'fabric/client'
-import { Badge, Dropdown, EmptyState, Modal, Page, PageHeader, Section, ToolbarButton } from 'fabric/ui'
+import type { FabricPageProps } from '@dsh-do/fabric/client'
+import { Badge, Dropdown, EmptyState, Modal, Page, PageHeader, Section, ToolbarButton } from '@dsh-do/fabric/ui'
 import type { ThemeCategory, ThemeDefinition } from '../../types.ts'
 import { calculateContrastRatio, evaluateContrastGrade, useThemeStudio } from '../theme-engine.ts'
 import styles from '../styles/gallery.module.css'

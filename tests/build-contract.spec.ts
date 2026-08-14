@@ -11,14 +11,14 @@ describe('Build Contract & Distribution Artifacts', () => {
 
   it('verifies package.json configuration', () => {
     const pkg = JSON.parse(readFileSync(packageJsonPath, 'utf-8'))
-    expect(pkg.name).toBe('fabric-theme-studio')
+    expect(pkg.name).toBe('@dsh-do/fabric-theme-studio')
     expect(pkg.version).toBe('0.6.0')
     expect(pkg.main).toBe('lib/index.js')
     expect(pkg.exports['.']).toBe('./lib/index.js')
     expect(pkg.exports['./client']).toBe('./lib/client.js')
     expect(pkg.dsh?.bundle?.patch).toBe('./cordis.patch.yml')
     expect(pkg.dsh?.client?.inject).toContain('fabric')
-    expect(pkg.peerDependencies?.fabric).toBe('^0.4.0')
+    expect(pkg.peerDependencies?.['@dsh-do/fabric']).toBe('^0.4.0')
   })
 
   it('verifies cordis.patch.yml consistency', () => {
@@ -60,5 +60,7 @@ describe('Build Contract & Distribution Artifacts', () => {
     // Must not bundle or require runtime fabric/client directly
     expect(clientContent).not.toMatch(/require\(["']fabric["']\)/)
     expect(clientContent).not.toMatch(/require\(["']fabric\/client["']\)/)
+    expect(clientContent).not.toMatch(/require\(["']@dsh-do\/fabric["']\)/)
+    expect(clientContent).not.toMatch(/require\(["']@dsh-do\/fabric\/client["']\)/)
   })
 })

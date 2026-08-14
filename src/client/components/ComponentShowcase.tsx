@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { FabricPageProps } from 'fabric/client'
+import type { FabricPageProps } from '@dsh-do/fabric/client'
 import {
   Badge,
   ConfigForm,
@@ -15,8 +15,8 @@ import {
   ToolbarButton,
   Z_INDEX,
   useFabricConfig,
-} from 'fabric/ui'
-import type { FabricConfigSchema } from 'fabric/sdk'
+} from '@dsh-do/fabric/ui'
+import type { FabricConfigSchema } from '@dsh-do/fabric/sdk'
 import { useThemeStudio } from '../theme-engine.ts'
 import styles from '../styles/showcase.module.css'
 

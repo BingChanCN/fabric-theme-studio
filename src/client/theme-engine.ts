@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { FabricThemeService } from 'fabric/client'
+import type { FabricThemeService } from '@dsh-do/fabric/client'
 import {
   BUILTIN_PRESETS,
   CATPPUCCIN_LATTE,
