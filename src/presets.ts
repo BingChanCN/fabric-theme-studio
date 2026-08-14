@@ -10,7 +10,7 @@ export const DEEPSEEK_CLASSIC: ThemeDefinition = {
   contrastRating: 'AAA',
   material: {
     acrylic: true,
-    noiseOpacity: 0.02,
+    noiseOpacity: 0.05,
     edgeHighlight: true,
     backgroundEffect: 'none',
   },
@@ -72,10 +72,10 @@ export const NORD_AURORA: ThemeDefinition = {
   contrastRating: 'AAA',
   material: {
     acrylic: true,
-    noiseOpacity: 0.03,
+    noiseOpacity: 0.06,
     edgeHighlight: true,
     backgroundEffect: 'aurora',
-    effectIntensity: 0.4,
+    effectIntensity: 0.8,
     effectSpeed: 'slow',
   },
   tokens: {
@@ -136,10 +136,10 @@ export const CYBERPUNK_NEON: ThemeDefinition = {
   contrastRating: 'AAA',
   material: {
     acrylic: false,
-    noiseOpacity: 0.04,
+    noiseOpacity: 0.07,
     edgeHighlight: true,
     backgroundEffect: 'cyber-grid',
-    effectIntensity: 0.7,
+    effectIntensity: 0.9,
     effectSpeed: 'normal',
   },
   tokens: {
@@ -200,10 +200,10 @@ export const CATPPUCCIN_MOCHA: ThemeDefinition = {
   contrastRating: 'AAA',
   material: {
     acrylic: true,
-    noiseOpacity: 0.02,
+    noiseOpacity: 0.055,
     edgeHighlight: true,
     backgroundEffect: 'mesh-gradient',
-    effectIntensity: 0.5,
+    effectIntensity: 0.8,
     effectSpeed: 'slow',
   },
   tokens: {
@@ -264,7 +264,7 @@ export const GRUVBOX_RETRO: ThemeDefinition = {
   contrastRating: 'AAA',
   material: {
     acrylic: false,
-    noiseOpacity: 0.05,
+    noiseOpacity: 0.07,
     edgeHighlight: true,
     backgroundEffect: 'none',
   },
@@ -326,10 +326,10 @@ export const TOKYO_NIGHT: ThemeDefinition = {
   contrastRating: 'AAA',
   material: {
     acrylic: true,
-    noiseOpacity: 0.03,
+    noiseOpacity: 0.06,
     edgeHighlight: true,
     backgroundEffect: 'aurora',
-    effectIntensity: 0.6,
+    effectIntensity: 0.85,
     effectSpeed: 'normal',
   },
   tokens: {
@@ -452,10 +452,10 @@ export const CATPPUCCIN_LATTE: ThemeDefinition = {
   contrastRating: 'AAA',
   material: {
     acrylic: true,
-    noiseOpacity: 0.015,
+    noiseOpacity: 0.045,
     edgeHighlight: false,
     backgroundEffect: 'mesh-gradient',
-    effectIntensity: 0.35,
+    effectIntensity: 0.7,
     effectSpeed: 'slow',
   },
   tokens: {

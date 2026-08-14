@@ -61,6 +61,14 @@ export function parseColorToRgb(color: string): [number, number, number] | null 
   return null
 }
 
+/** Convert a hex/rgb color to an rgba() string. Falls back to the original if unparsable. */
+export function colorToRgba(color: string, alpha: number): string {
+  const rgb = parseColorToRgb(color)
+  if (!rgb) return color
+  const a = Math.min(1, Math.max(0, alpha))
+  return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${a})`
+}
+
 /** Calculate relative luminance of an sRGB color per WCAG 2.1 specs. */
 export function calculateLuminance(r: number, g: number, b: number): number {
   const a = [r, g, b].map(v => {
@@ -115,17 +123,19 @@ export function generateTokenDictionary(
     '--dsw-alias-bg-multi-select': tokens.background.bgSurface,
     '--dsw-alias-bg-skeleton': tokens.background.bgSubtle,
 
-    // Material system tokens
+    // Material system tokens — consumed by Fabric workbench/modal/popover surfaces
     '--dsw-material-acrylic-blur': acrylic ? '16px' : '0px',
+    '--dsw-material-acrylic-filter': acrylic ? 'blur(16px)' : 'none',
     '--dsw-material-acrylic-bg': acrylic
-      ? isLight
-        ? 'rgba(255, 255, 255, 0.75)'
-        : 'rgba(20, 22, 28, 0.75)'
-      : tokens.background.bgElevated,
+      ? colorToRgba(tokens.background.bgElevated, isLight ? 0.8 : 0.72)
+      : tokens.background.bgBase,
     '--dsw-material-noise-opacity': String(noiseOpacity),
     '--dsw-material-edge-highlight': edgeHighlight
-      ? 'inset 0 1px 0 0 rgba(255, 255, 255, 0.12)'
+      ? isLight
+        ? 'inset 0 1px 0 0 rgba(255, 255, 255, 0.7), inset 0 -1px 0 0 rgba(0, 0, 0, 0.06)'
+        : 'inset 0 1px 0 0 rgba(255, 255, 255, 0.16)'
       : 'none',
+    '--dsw-ambient-intensity': String(material?.effectIntensity ?? 0.75),
 
     // DSH Specific UI Components
     '--dsw-specific-sidebar-fill': tokens.background.bgElevated,
@@ -292,25 +302,9 @@ export function generateCssVariables(
   }
   lines.push('}')
 
-  // Append backdrop and ambient animation keyframes
+  // Ambient lives on the Fabric workbench drawer (data-fabric-workbench),
+  // not on a z-index:-1 body child that AppFrame's opaque bg-base covers.
   lines.push(`
-#${BACKDROP_CONTAINER_ID} {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  pointer-events: none;
-  z-index: -1;
-  overflow: hidden;
-  opacity: var(--dsw-ambient-intensity, 0.5);
-  transition: opacity 0.5s ease;
-}
-
-#${BACKDROP_CONTAINER_ID}[data-effect="none"] {
-  display: none;
-}
-
 #${NOISE_CONTAINER_ID} {
   position: fixed;
   top: 0;
@@ -318,7 +312,7 @@ export function generateCssVariables(
   width: 100vw;
   height: 100vh;
   pointer-events: none;
-  z-index: 999999;
+  z-index: 2147483000;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128' viewBox='0 0 128 128'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.7'/%3E%3C/svg%3E");
   background-repeat: repeat;
   mix-blend-mode: overlay;
@@ -326,100 +320,134 @@ export function generateCssVariables(
   transition: opacity 0.3s ease;
 }
 
-/* Aurora effect */
-#${BACKDROP_CONTAINER_ID}[data-effect="aurora"] .ambient-orb-1 {
-  position: absolute;
-  top: -20%;
-  left: -10%;
-  width: 75vw;
-  height: 75vw;
-  border-radius: 50%;
-  background: radial-gradient(circle, var(--dsw-alias-brand-primary, #4176e6) 0%, transparent 65%);
-  filter: blur(80px);
-  opacity: 0.25;
-  animation: fts-aurora-drift 24s ease-in-out infinite alternate;
+body[data-fabric-ambient-speed="slow"] [data-fabric-workbench="true"] {
+  --fts-ambient-duration: 36s;
+  --fts-ambient-duration-alt: 44s;
+  --fts-scan-duration: 16s;
+}
+body[data-fabric-ambient-speed="normal"] [data-fabric-workbench="true"] {
+  --fts-ambient-duration: 24s;
+  --fts-ambient-duration-alt: 30s;
+  --fts-scan-duration: 10s;
+}
+body[data-fabric-ambient-speed="fast"] [data-fabric-workbench="true"] {
+  --fts-ambient-duration: 12s;
+  --fts-ambient-duration-alt: 16s;
+  --fts-scan-duration: 6s;
 }
 
-#${BACKDROP_CONTAINER_ID}[data-effect="aurora"] .ambient-orb-2 {
+body[data-fabric-ambient="aurora"] [data-fabric-workbench="true"]::before {
+  content: "";
   position: absolute;
-  bottom: -20%;
-  right: -10%;
-  width: 65vw;
-  height: 65vw;
+  top: -18%;
+  left: -16%;
+  width: 80%;
+  height: 78%;
   border-radius: 50%;
-  background: radial-gradient(circle, var(--dsw-color-accent-primary, #ff77c6) 0%, transparent 65%);
-  filter: blur(90px);
-  opacity: 0.2;
-  animation: fts-aurora-orbit 30s ease-in-out infinite alternate-reverse;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(circle, var(--dsw-alias-brand-primary, #4176e6) 0%, transparent 68%);
+  filter: blur(42px);
+  opacity: calc(0.62 * var(--dsw-ambient-intensity, 0.75));
+  animation: fts-aurora-drift var(--fts-ambient-duration, 24s) ease-in-out infinite alternate;
+}
+
+body[data-fabric-ambient="aurora"] [data-fabric-workbench="true"]::after {
+  content: "";
+  position: absolute;
+  bottom: -22%;
+  right: -14%;
+  width: 72%;
+  height: 72%;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(circle, var(--dsw-color-accent-primary, #ff77c6) 0%, transparent 68%);
+  filter: blur(48px);
+  opacity: calc(0.5 * var(--dsw-ambient-intensity, 0.75));
+  animation: fts-aurora-orbit var(--fts-ambient-duration-alt, 30s) ease-in-out infinite alternate-reverse;
 }
 
 @keyframes fts-aurora-drift {
   0% { transform: translate3d(0, 0, 0) scale(1); }
-  50% { transform: translate3d(12vw, 10vh, 0) scale(1.12); }
-  100% { transform: translate3d(-8vw, 14vh, 0) scale(0.96); }
+  50% { transform: translate3d(10%, 8%, 0) scale(1.1); }
+  100% { transform: translate3d(-8%, 12%, 0) scale(0.96); }
 }
 
 @keyframes fts-aurora-orbit {
   0% { transform: translate3d(0, 0, 0) rotate(0deg); }
-  100% { transform: translate3d(-14vw, -10vh, 0) rotate(180deg); }
+  100% { transform: translate3d(-12%, -10%, 0) rotate(180deg); }
 }
 
-/* Cyber Grid effect */
-#${BACKDROP_CONTAINER_ID}[data-effect="cyber-grid"] {
-  background: 
-    linear-gradient(rgba(255, 0, 127, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 255, 255, 0.05) 1px, transparent 1px);
-  background-size: 36px 36px;
-}
-
-#${BACKDROP_CONTAINER_ID}[data-effect="cyber-grid"]::after {
+body[data-fabric-ambient="cyber-grid"] [data-fabric-workbench="true"]::before {
   content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(180deg, transparent 0%, rgba(0, 255, 255, 0.08) 50%, transparent 100%);
-  background-size: 100% 200%;
-  animation: fts-scanline 10s linear infinite;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    linear-gradient(rgba(255, 0, 127, 0.16) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 255, 0.14) 1px, transparent 1px);
+  background-size: 32px 32px;
+  opacity: var(--dsw-ambient-intensity, 0.85);
+}
+
+body[data-fabric-ambient="cyber-grid"] [data-fabric-workbench="true"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 255, 255, 0.2) 50%, transparent 100%);
+  background-size: 100% 220%;
+  animation: fts-scanline var(--fts-scan-duration, 10s) linear infinite;
+  opacity: var(--dsw-ambient-intensity, 0.85);
 }
 
 @keyframes fts-scanline {
   0% { background-position: 0 0; }
-  100% { background-position: 0 200%; }
+  100% { background-position: 0 220%; }
 }
 
-/* Mesh Gradient effect */
-#${BACKDROP_CONTAINER_ID}[data-effect="mesh-gradient"] {
-  background: radial-gradient(at 0% 0%, var(--dsw-alias-brand-primary, #cba6f7) 0px, transparent 50%),
-              radial-gradient(at 100% 0%, var(--dsw-color-accent-primary, #f5c2e7) 0px, transparent 50%),
-              radial-gradient(at 50% 100%, var(--dsw-alias-brand-hover, #89b4fa) 0px, transparent 50%);
-  filter: blur(60px);
-  opacity: 0.18;
-  animation: fts-mesh-pulse 16s ease-in-out infinite alternate;
+body[data-fabric-ambient="mesh-gradient"] [data-fabric-workbench="true"]::before {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(at 0% 0%, var(--dsw-alias-brand-primary, #cba6f7) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, var(--dsw-color-accent-primary, #f5c2e7) 0px, transparent 50%),
+    radial-gradient(at 50% 100%, var(--dsw-alias-brand-hover, #89b4fa) 0px, transparent 50%);
+  filter: blur(48px);
+  opacity: calc(0.42 * var(--dsw-ambient-intensity, 0.75));
+  animation: fts-mesh-pulse var(--fts-ambient-duration, 16s) ease-in-out infinite alternate;
 }
 
 @keyframes fts-mesh-pulse {
-  0% { transform: scale(1); filter: blur(60px) hue-rotate(0deg); }
-  100% { transform: scale(1.06); filter: blur(70px) hue-rotate(30deg); }
+  0% { transform: scale(1); filter: blur(48px) hue-rotate(0deg); }
+  100% { transform: scale(1.08); filter: blur(56px) hue-rotate(24deg); }
 }
 
-/* Spotlight effect */
-#${BACKDROP_CONTAINER_ID}[data-effect="spotlight"] {
-  background: radial-gradient(circle at 50% 30%, var(--dsw-alias-brand-primary, #4176e6) 0%, transparent 60%);
-  filter: blur(80px);
-  opacity: 0.15;
+body[data-fabric-ambient="spotlight"] [data-fabric-workbench="true"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(circle at 50% 24%, var(--dsw-alias-brand-primary, #4176e6) 0%, transparent 58%);
+  filter: blur(52px);
+  opacity: calc(0.4 * var(--dsw-ambient-intensity, 0.75));
 }
 
-/* Paused when hidden or reduced motion */
-#${BACKDROP_CONTAINER_ID}[data-paused="true"] *,
-#${BACKDROP_CONTAINER_ID}[data-paused="true"]::after {
+body[data-fabric-ambient-paused="true"] [data-fabric-workbench="true"]::before,
+body[data-fabric-ambient-paused="true"] [data-fabric-workbench="true"]::after {
   animation-play-state: paused !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #${BACKDROP_CONTAINER_ID} *,
-  #${BACKDROP_CONTAINER_ID}::after {
+  [data-fabric-workbench="true"]::before,
+  [data-fabric-workbench="true"]::after {
     animation: none !important;
   }
 }
@@ -467,13 +495,10 @@ export class ThemeStudioEngine {
 
     if (typeof document !== 'undefined') {
       document.addEventListener('visibilitychange', () => {
-        const backdrop = document.getElementById(BACKDROP_CONTAINER_ID)
-        if (backdrop) {
-          if (document.hidden) {
-            backdrop.setAttribute('data-paused', 'true')
-          } else {
-            backdrop.removeAttribute('data-paused')
-          }
+        if (document.hidden) {
+          document.body.setAttribute('data-fabric-ambient-paused', 'true')
+        } else {
+          document.body.removeAttribute('data-fabric-ambient-paused')
         }
       })
     }
@@ -666,31 +691,17 @@ export class ThemeStudioEngine {
         document.body.removeAttribute('data-ds-light-theme')
       }
 
-      // Material backdrop container management
-      let backdrop = document.getElementById(BACKDROP_CONTAINER_ID)
-      if (!backdrop) {
-        backdrop = document.createElement('div')
-        backdrop.id = BACKDROP_CONTAINER_ID
-        backdrop.innerHTML = `
-          <div class="ambient-orb-1"></div>
-          <div class="ambient-orb-2"></div>
-        `
-        document.body.prepend(backdrop)
-      }
-
       const effect: BackgroundEffect =
         this.dynamicEffectsEnabled && theme.material?.backgroundEffect
           ? theme.material.backgroundEffect
           : 'none'
+      const speed = theme.material?.effectSpeed ?? 'normal'
+      document.body.setAttribute('data-fabric-ambient', effect)
+      document.body.setAttribute('data-fabric-ambient-speed', speed)
 
-      backdrop.setAttribute('data-effect', effect)
-      backdrop.setAttribute('data-speed', theme.material?.effectSpeed ?? 'normal')
-      backdrop.style.setProperty(
-        '--dsw-ambient-intensity',
-        String(theme.material?.effectIntensity ?? 0.5),
-      )
+      // Drop the v0.5.0 body-level backdrop — it sat under AppFrame's opaque fill.
+      document.getElementById(BACKDROP_CONTAINER_ID)?.remove()
 
-      // Noise texture overlay container management
       let noiseEl = document.getElementById(NOISE_CONTAINER_ID)
       if (!noiseEl) {
         noiseEl = document.createElement('div')

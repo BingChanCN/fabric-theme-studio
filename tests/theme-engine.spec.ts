@@ -3,8 +3,10 @@ import type { FabricThemeService } from 'fabric/client'
 import {
   calculateContrastRatio,
   calculateLuminance,
+  colorToRgba,
   evaluateContrastGrade,
   generateCssVariables,
+  generateTokenDictionary,
   parseColorToRgb,
   ThemeStudioEngine,
 } from '../src/client/theme-engine.ts'
@@ -188,13 +190,36 @@ describe('ThemeStudioEngine State Management & Fabric Bridge', () => {
     }
   })
 
-  it('generates material variables and background keyframes', () => {
+  it('converts hex/rgb colors to rgba with clamped alpha', () => {
+    expect(colorToRgba('#112233', 0.5)).toBe('rgba(17, 34, 51, 0.5)')
+    expect(colorToRgba('rgb(15, 17, 21)', 0.72)).toBe('rgba(15, 17, 21, 0.72)')
+    expect(colorToRgba('#fff', 2)).toBe('rgba(255, 255, 255, 1)')
+  })
+
+  it('emits acrylic filter/bg from the theme color instead of a hardcoded overlay', () => {
+    const on = generateTokenDictionary(NORD_AURORA.tokens, NORD_AURORA.material, false)
+    expect(on['--dsw-material-acrylic-filter']).toBe('blur(16px)')
+    expect(on['--dsw-material-acrylic-bg']).toMatch(/^rgba\(/)
+    expect(on['--dsw-material-acrylic-bg']).not.toBe('rgba(20, 22, 28, 0.75)')
+    expect(on['--dsw-ambient-intensity']).toBe('0.8')
+
+    const off = generateTokenDictionary(CYBERPUNK_NEON.tokens, CYBERPUNK_NEON.material, false)
+    expect(off['--dsw-material-acrylic-filter']).toBe('none')
+    expect(off['--dsw-material-acrylic-bg']).toBe(CYBERPUNK_NEON.tokens.background.bgBase)
+  })
+
+  it('paints ambient effects on the workbench drawer, not a z-index:-1 body layer', () => {
     const css = generateCssVariables(CYBERPUNK_NEON.tokens, CYBERPUNK_NEON.material, false)
     expect(css).toContain('--dsw-material-noise-opacity')
     expect(css).toContain('--dsw-material-acrylic-blur')
-    expect(css).toContain('#fabric-theme-backdrop')
+    expect(css).toContain('--dsw-material-acrylic-filter')
+    expect(css).toContain('[data-fabric-workbench="true"]')
+    expect(css).toContain('data-fabric-ambient="cyber-grid"')
+    expect(css).toContain('data-fabric-ambient-speed')
     expect(css).toContain('fts-scanline')
     expect(css).toContain('fts-aurora-drift')
+    expect(css).not.toContain('#fabric-theme-backdrop {')
+    expect(css).not.toContain('z-index: -1')
   })
 
   it('controls dynamic effects toggle', () => {
