@@ -338,7 +338,7 @@ export function apply(ctx: Context): void {
       // Wallpaper serve endpoint (prefix matching for /api/theme-studio/wallpaper/:filename)
       const stopWallpaperServe = webCtx.webServer.register({
         kind: 'prefix',
-        path: '/api/theme-studio/wallpaper/',
+        path: '/api/theme-studio/wallpaper',
         handler: (req, res) => {
           if (req.method === 'OPTIONS') {
             writeJson(res, 204, null)

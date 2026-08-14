@@ -303,27 +303,41 @@ export function generateCssVariables(
 
     lines.push(`
 #${WALLPAPER_CONTAINER_ID} {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  pointer-events: none;
-  z-index: -10;
-  background-image: url(${JSON.stringify(wallpaper.url)});
-  background-size: ${size};
-  background-repeat: ${repeat};
-  background-position: center center;
-  background-attachment: fixed;
-  opacity: ${opacity};
-  filter: ${blur > 0 ? `blur(${blur}px)` : 'none'};
-  transform: scale(${scale});
-  transition: opacity 0.4s ease, filter 0.4s ease;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  pointer-events: none !important;
+  z-index: 0 !important;
+  background-image: url(${JSON.stringify(wallpaper.url)}) !important;
+  background-size: ${size} !important;
+  background-repeat: ${repeat} !important;
+  background-position: center center !important;
+  background-attachment: fixed !important;
+  opacity: ${opacity} !important;
+  filter: ${blur > 0 ? `blur(${blur}px)` : 'none'} !important;
+  transform: scale(${scale}) !important;
+  transition: opacity 0.4s ease, filter 0.4s ease !important;
+  display: block !important;
 }
 
-body[data-fabric-has-wallpaper="true"],
-body[data-fabric-has-wallpaper="true"] html {
+html[data-fabric-has-wallpaper="true"],
+body[data-fabric-has-wallpaper="true"] {
+  background: transparent !important;
   background-color: transparent !important;
+}
+
+html[data-fabric-has-wallpaper="true"] #root,
+body[data-fabric-has-wallpaper="true"] #root {
+  position: relative !important;
+  z-index: 1 !important;
+  background: transparent !important;
+}
+
+/* Prevent AppFrame from double-stacking the bg-base opacity */
+body[data-fabric-has-wallpaper="true"] [class*="frame"] {
+  background: transparent !important;
 }
 `)
   } else {
@@ -726,15 +740,22 @@ export class ThemeStudioEngine {
       const wallpaper = theme.material?.wallpaper
       const hasWallpaper = Boolean(wallpaper?.enabled && wallpaper.url)
       if (hasWallpaper) {
+        document.documentElement.setAttribute('data-fabric-has-wallpaper', 'true')
         document.body.setAttribute('data-fabric-has-wallpaper', 'true')
         let wpEl = document.getElementById(WALLPAPER_CONTAINER_ID)
         if (!wpEl) {
           wpEl = document.createElement('div')
           wpEl.id = WALLPAPER_CONTAINER_ID
-          document.body.prepend(wpEl)
+          const rootEl = document.getElementById('root')
+          if (rootEl && rootEl.parentNode) {
+            rootEl.parentNode.insertBefore(wpEl, rootEl)
+          } else {
+            document.body.prepend(wpEl)
+          }
         }
         wpEl.style.display = 'block'
       } else {
+        document.documentElement.removeAttribute('data-fabric-has-wallpaper')
         document.body.removeAttribute('data-fabric-has-wallpaper')
         document.getElementById(WALLPAPER_CONTAINER_ID)?.remove()
       }
