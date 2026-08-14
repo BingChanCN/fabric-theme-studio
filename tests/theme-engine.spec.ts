@@ -54,14 +54,14 @@ describe('Color & Contrast Mathematics', () => {
 })
 
 describe('CSS Variable Generation', () => {
-  it('generates valid :root and body block with --dsw-* and --fts-* properties', () => {
+  it('generates valid :root, body and DSH theme selectors with --dsw-alias-* and --dsw-* properties', () => {
     const css = generateCssVariables(DEEPSEEK_CLASSIC.tokens)
-    expect(css).toContain(':root, body {')
-    expect(css).toContain('--dsw-color-bg-base: rgb(15, 17, 21);')
-    expect(css).toContain('--dsw-color-text-primary: rgb(255, 255, 255);')
-    expect(css).toContain('--dsw-color-brand-primary: rgb(65, 118, 230);')
-    expect(css).toContain('--fts-brand-primary: rgb(65, 118, 230);')
-    expect(css).toContain('}')
+    expect(css).toContain(':root, body, body[data-ds-dark-theme]')
+    expect(css).toContain('--dsw-alias-bg-base: rgb(15, 17, 21) !important;')
+    expect(css).toContain('--dsw-alias-label-primary: rgb(255, 255, 255) !important;')
+    expect(css).toContain('--dsw-alias-brand-primary: rgb(65, 118, 230) !important;')
+    expect(css).toContain('--dsw-color-brand-primary: rgb(65, 118, 230) !important;')
+    expect(css).toContain('--fts-brand-primary: rgb(65, 118, 230) !important;')
   })
 })
 

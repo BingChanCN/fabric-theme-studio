@@ -67,72 +67,172 @@ export function evaluateContrastGrade(ratio: number): ContrastGrade {
   return 'Fail'
 }
 
-/** Generate CSS variables mapping for a theme. */
+/** Generate CSS variables mapping for a theme covering DSH aliases, specific variables, and statics. */
 export function generateCssVariables(tokens: ThemeTokens): string {
   const lines: string[] = [
-    ':root, body {',
-    `  --dsw-color-bg-base: ${tokens.background.bgBase};`,
-    `  --dsw-color-bg-elevated: ${tokens.background.bgElevated};`,
-    `  --dsw-color-bg-subtle: ${tokens.background.bgSubtle};`,
-    `  --dsw-color-bg-surface: ${tokens.background.bgSurface};`,
-    `  --dsw-color-bg-sunken: ${tokens.background.bgSunken};`,
-    `  --dsw-color-text-primary: ${tokens.text.textPrimary};`,
-    `  --dsw-color-text-secondary: ${tokens.text.textSecondary};`,
-    `  --dsw-color-text-tertiary: ${tokens.text.textTertiary};`,
-    `  --dsw-color-text-disabled: ${tokens.text.textDisabled};`,
-    `  --dsw-color-border-base: ${tokens.border.borderBase};`,
-    `  --dsw-color-border-subtle: ${tokens.border.borderSubtle};`,
-    `  --dsw-color-border-focus: ${tokens.border.borderFocus};`,
-    `  --dsw-color-brand-primary: ${tokens.brand.brandPrimary};`,
-    `  --dsw-color-brand-hover: ${tokens.brand.brandHover};`,
-    `  --dsw-color-brand-active: ${tokens.brand.brandActive};`,
-    `  --dsw-color-brand-surface: ${tokens.brand.brandSurface};`,
-    `  --dsw-color-brand-text: ${tokens.brand.brandText};`,
-    `  --dsw-color-accent-primary: ${tokens.accent.accentPrimary};`,
-    `  --dsw-color-accent-hover: ${tokens.accent.accentHover};`,
-    `  --dsw-color-accent-surface: ${tokens.accent.accentSurface};`,
-    `  --dsw-color-success-base: ${tokens.status.success};`,
-    `  --dsw-color-warning-base: ${tokens.status.warning};`,
-    `  --dsw-color-error-base: ${tokens.status.error};`,
-    `  --dsw-color-info-base: ${tokens.status.info};`,
-    `  --dsw-radius-sm: ${tokens.shape.radiusSm};`,
-    `  --dsw-radius-md: ${tokens.shape.radiusMd};`,
-    `  --dsw-radius-lg: ${tokens.shape.radiusLg};`,
-    `  --dsw-shadow-sm: ${tokens.shape.shadowSm};`,
-    `  --dsw-shadow-md: ${tokens.shape.shadowMd};`,
-    `  --dsw-shadow-lg: ${tokens.shape.shadowLg};`,
+    ':root, body, body[data-ds-dark-theme], body[data-ds-light-theme], [data-fabric-theme] {',
+    '  /* DSH Core Background & Container Aliases */',
+    `  --dsw-alias-bg-base: ${tokens.background.bgBase} !important;`,
+    `  --dsw-alias-bg-layer-1: ${tokens.background.bgElevated} !important;`,
+    `  --dsw-alias-bg-layer-2: ${tokens.background.bgSubtle} !important;`,
+    `  --dsw-alias-bg-layer-3: ${tokens.background.bgSurface} !important;`,
+    `  --dsw-alias-bg-overlay: ${tokens.background.bgElevated} !important;`,
+    `  --dsw-alias-bg-module-platform: ${tokens.background.bgElevated} !important;`,
+    `  --dsw-alias-bg-multi-select: ${tokens.background.bgSurface} !important;`,
+    `  --dsw-alias-bg-skeleton: ${tokens.background.bgSubtle} !important;`,
+    '',
+    '  /* DSH Specific UI Components */',
+    `  --dsw-specific-sidebar-fill: ${tokens.background.bgElevated} !important;`,
+    `  --dsw-specific-sidebar-nav-item-active: ${tokens.brand.brandSurface} !important;`,
+    `  --dsw-specific-sidebar-nav-item-active-accent: ${tokens.brand.brandPrimary} !important;`,
+    `  --dsw-specific-sidebar-nav-item-hover: ${tokens.background.bgSurface} !important;`,
+    `  --dsw-specific-input-major: ${tokens.background.bgSunken} !important;`,
+    `  --dsw-specific-login-input: ${tokens.background.bgSunken} !important;`,
+    `  --dsw-specific-bubble: ${tokens.background.bgElevated} !important;`,
+    `  --dsw-specific-bubble-highlight: ${tokens.brand.brandSurface} !important;`,
+    `  --dsw-specific-selector: ${tokens.background.bgSurface} !important;`,
+    `  --dsw-specific-tip: ${tokens.background.bgSurface} !important;`,
+    `  --dsw-specific-menu: ${tokens.background.bgElevated} !important;`,
+    '',
+    '  /* Typography / Text Hierarchy */',
+    `  --dsw-alias-label-primary: ${tokens.text.textPrimary} !important;`,
+    `  --dsw-alias-label-primary-bluish: ${tokens.text.textPrimary} !important;`,
+    `  --dsw-alias-label-primary-dimmed: ${tokens.text.textSecondary} !important;`,
+    `  --dsw-alias-label-primary-foreground: ${tokens.text.textPrimary} !important;`,
+    `  --dsw-alias-label-primary-inverted: ${tokens.background.bgBase} !important;`,
+    `  --dsw-alias-label-secondary: ${tokens.text.textSecondary} !important;`,
+    `  --dsw-alias-label-tertiary: ${tokens.text.textTertiary} !important;`,
+    `  --dsw-alias-label-caption: ${tokens.text.textDisabled} !important;`,
+    `  --dsw-alias-label-dimmed: ${tokens.text.textDisabled} !important;`,
+    '',
+    '  /* Dividers & Borders */',
+    `  --dsw-alias-border-l1: ${tokens.border.borderSubtle} !important;`,
+    `  --dsw-alias-border-l2: ${tokens.border.borderBase} !important;`,
+    `  --dsw-alias-border-l3: ${tokens.border.borderFocus} !important;`,
+    `  --dsw-alias-border-l4: ${tokens.border.borderFocus} !important;`,
+    `  --dsw-alias-border-inverted: ${tokens.border.borderSubtle} !important;`,
+    `  --dsw-alias-border-inverted2: ${tokens.border.borderSubtle} !important;`,
+    `  --dsw-alias-border-l2-darkmode-thin: ${tokens.border.borderSubtle} !important;`,
+    '',
+    '  /* Brand & Interactive Controls */',
+    `  --dsw-alias-brand-primary: ${tokens.brand.brandPrimary} !important;`,
+    `  --dsw-alias-brand-text: ${tokens.brand.brandText} !important;`,
+    `  --dsw-alias-brand-primary-new-colorprimary-new-color: ${tokens.brand.brandPrimary} !important;`,
+    `  --dsw-alias-brand-primary-invert: ${tokens.brand.brandPrimary} !important;`,
+    `  --dsw-alias-button-primary-fill: ${tokens.brand.brandPrimary} !important;`,
+    `  --dsw-alias-button-primary-hover: ${tokens.brand.brandHover} !important;`,
+    `  --dsw-alias-button-info-fill: ${tokens.brand.brandPrimary} !important;`,
+    `  --dsw-alias-button-info-hover: ${tokens.brand.brandHover} !important;`,
+    `  --dsw-alias-button-elevated-fill: ${tokens.background.bgElevated} !important;`,
+    `  --dsw-alias-button-floating-fill: ${tokens.background.bgElevated} !important;`,
+    `  --dsw-alias-button-floating-hover: ${tokens.background.bgSurface} !important;`,
+    `  --dsw-alias-button-ghost-active-fill: ${tokens.brand.brandSurface} !important;`,
+    `  --dsw-alias-button-ghost-active-hover: ${tokens.background.bgSurface} !important;`,
+    `  --dsw-alias-button-ghost-active-border: ${tokens.border.borderBase} !important;`,
+    `  --dsw-alias-button-tool-bar-fill: ${tokens.background.bgSurface} !important;`,
+    `  --dsw-alias-interactive-bg-hover: ${tokens.background.bgSurface} !important;`,
+    `  --dsw-alias-interactive-bg-hover-accent: ${tokens.brand.brandSurface} !important;`,
+    `  --dsw-alias-interactive-bg-active: ${tokens.brand.brandSurface} !important;`,
+    `  --dsw-alias-interactive-bg-hover-solid: ${tokens.background.bgSurface} !important;`,
+    '',
+    '  /* Status & Semantic States */',
+    `  --dsw-alias-state-business-primary: ${tokens.brand.brandPrimary} !important;`,
+    `  --dsw-alias-state-business-tertiary: ${tokens.brand.brandSurface} !important;`,
+    `  --dsw-alias-state-success-primary: ${tokens.status.success} !important;`,
+    `  --dsw-alias-state-success-secondary: ${tokens.status.success} !important;`,
+    `  --dsw-alias-state-warn-primary: ${tokens.status.warning} !important;`,
+    `  --dsw-alias-state-warn-secondary: ${tokens.status.warning} !important;`,
+    `  --dsw-alias-state-warn-label: ${tokens.status.warning} !important;`,
+    `  --dsw-alias-state-error-primary: ${tokens.status.error} !important;`,
+    `  --dsw-alias-state-error-secondary: ${tokens.status.error} !important;`,
+    '',
+    '  /* Static Palette Overrides for DeepSeek & Bluish Neutrals */',
+    `  --dsw-static-deepseek-500: ${tokens.brand.brandPrimary} !important;`,
+    `  --dsw-static-deepseek-450: ${tokens.brand.brandHover} !important;`,
+    `  --dsw-static-deepseek-400: ${tokens.brand.brandHover} !important;`,
+    `  --dsw-static-deepseek-300: ${tokens.brand.brandText} !important;`,
+    `  --dsw-static-deepseek-200: ${tokens.brand.brandSurface} !important;`,
+    `  --dsw-static-deepseek-100: ${tokens.brand.brandSurface} !important;`,
+    `  --dsw-static-deepseek-50: ${tokens.brand.brandSurface} !important;`,
+    `  --dsw-static-neutral-bluish-1000: ${tokens.background.bgSunken} !important;`,
+    `  --dsw-static-neutral-bluish-950: ${tokens.background.bgBase} !important;`,
+    `  --dsw-static-neutral-bluish-900: ${tokens.background.bgElevated} !important;`,
+    `  --dsw-static-neutral-bluish-875: ${tokens.background.bgSubtle} !important;`,
+    `  --dsw-static-neutral-bluish-850: ${tokens.background.bgSurface} !important;`,
+    `  --dsw-static-neutral-bluish-800: ${tokens.border.borderBase} !important;`,
+    `  --dsw-static-neutral-bluish-750: ${tokens.border.borderSubtle} !important;`,
+    `  --dsw-static-neutral-bluish-700: ${tokens.text.textDisabled} !important;`,
+    `  --dsw-static-neutral-bluish-600: ${tokens.text.textTertiary} !important;`,
+    `  --dsw-static-neutral-bluish-500: ${tokens.text.textTertiary} !important;`,
+    `  --dsw-static-neutral-bluish-400: ${tokens.text.textSecondary} !important;`,
+    `  --dsw-static-neutral-bluish-300: ${tokens.text.textSecondary} !important;`,
+    `  --dsw-static-neutral-bluish-200: ${tokens.text.textPrimary} !important;`,
+    `  --dsw-static-neutral-bluish-100: ${tokens.text.textPrimary} !important;`,
+    `  --dsw-static-neutral-bluish-50: ${tokens.text.textPrimary} !important;`,
+    `  --dsw-static-neutral-bluish-00: ${tokens.text.textPrimary} !important;`,
     '',
     '  /* Fabric Theme Studio Scope Variables */',
-    `  --fts-bg-base: ${tokens.background.bgBase};`,
-    `  --fts-bg-elevated: ${tokens.background.bgElevated};`,
-    `  --fts-bg-subtle: ${tokens.background.bgSubtle};`,
-    `  --fts-bg-surface: ${tokens.background.bgSurface};`,
-    `  --fts-bg-sunken: ${tokens.background.bgSunken};`,
-    `  --fts-text-primary: ${tokens.text.textPrimary};`,
-    `  --fts-text-secondary: ${tokens.text.textSecondary};`,
-    `  --fts-text-tertiary: ${tokens.text.textTertiary};`,
-    `  --fts-text-disabled: ${tokens.text.textDisabled};`,
-    `  --fts-border-base: ${tokens.border.borderBase};`,
-    `  --fts-border-subtle: ${tokens.border.borderSubtle};`,
-    `  --fts-border-focus: ${tokens.border.borderFocus};`,
-    `  --fts-brand-primary: ${tokens.brand.brandPrimary};`,
-    `  --fts-brand-hover: ${tokens.brand.brandHover};`,
-    `  --fts-brand-active: ${tokens.brand.brandActive};`,
-    `  --fts-brand-surface: ${tokens.brand.brandSurface};`,
-    `  --fts-brand-text: ${tokens.brand.brandText};`,
-    `  --fts-accent-primary: ${tokens.accent.accentPrimary};`,
-    `  --fts-accent-hover: ${tokens.accent.accentHover};`,
-    `  --fts-accent-surface: ${tokens.accent.accentSurface};`,
-    `  --fts-status-success: ${tokens.status.success};`,
-    `  --fts-status-warning: ${tokens.status.warning};`,
-    `  --fts-status-error: ${tokens.status.error};`,
-    `  --fts-status-info: ${tokens.status.info};`,
-    `  --fts-radius-sm: ${tokens.shape.radiusSm};`,
-    `  --fts-radius-md: ${tokens.shape.radiusMd};`,
-    `  --fts-radius-lg: ${tokens.shape.radiusLg};`,
-    `  --fts-shadow-sm: ${tokens.shape.shadowSm};`,
-    `  --fts-shadow-md: ${tokens.shape.shadowMd};`,
-    `  --fts-shadow-lg: ${tokens.shape.shadowLg};`,
+    `  --dsw-color-bg-base: ${tokens.background.bgBase} !important;`,
+    `  --dsw-color-bg-elevated: ${tokens.background.bgElevated} !important;`,
+    `  --dsw-color-bg-subtle: ${tokens.background.bgSubtle} !important;`,
+    `  --dsw-color-bg-surface: ${tokens.background.bgSurface} !important;`,
+    `  --dsw-color-bg-sunken: ${tokens.background.bgSunken} !important;`,
+    `  --dsw-color-text-primary: ${tokens.text.textPrimary} !important;`,
+    `  --dsw-color-text-secondary: ${tokens.text.textSecondary} !important;`,
+    `  --dsw-color-text-tertiary: ${tokens.text.textTertiary} !important;`,
+    `  --dsw-color-text-disabled: ${tokens.text.textDisabled} !important;`,
+    `  --dsw-color-border-base: ${tokens.border.borderBase} !important;`,
+    `  --dsw-color-border-subtle: ${tokens.border.borderSubtle} !important;`,
+    `  --dsw-color-border-focus: ${tokens.border.borderFocus} !important;`,
+    `  --dsw-color-brand-primary: ${tokens.brand.brandPrimary} !important;`,
+    `  --dsw-color-brand-hover: ${tokens.brand.brandHover} !important;`,
+    `  --dsw-color-brand-active: ${tokens.brand.brandActive} !important;`,
+    `  --dsw-color-brand-surface: ${tokens.brand.brandSurface} !important;`,
+    `  --dsw-color-brand-text: ${tokens.brand.brandText} !important;`,
+    `  --dsw-color-accent-primary: ${tokens.accent.accentPrimary} !important;`,
+    `  --dsw-color-accent-hover: ${tokens.accent.accentHover} !important;`,
+    `  --dsw-color-accent-surface: ${tokens.accent.accentSurface} !important;`,
+    `  --dsw-color-success-base: ${tokens.status.success} !important;`,
+    `  --dsw-color-warning-base: ${tokens.status.warning} !important;`,
+    `  --dsw-color-error-base: ${tokens.status.error} !important;`,
+    `  --dsw-color-info-base: ${tokens.status.info} !important;`,
+    `  --dsw-radius-sm: ${tokens.shape.radiusSm} !important;`,
+    `  --dsw-radius-md: ${tokens.shape.radiusMd} !important;`,
+    `  --dsw-radius-lg: ${tokens.shape.radiusLg} !important;`,
+    `  --dsw-shadow-sm: ${tokens.shape.shadowSm} !important;`,
+    `  --dsw-shadow-md: ${tokens.shape.shadowMd} !important;`,
+    `  --dsw-shadow-lg: ${tokens.shape.shadowLg} !important;`,
+    '',
+    `  --fts-bg-base: ${tokens.background.bgBase} !important;`,
+    `  --fts-bg-elevated: ${tokens.background.bgElevated} !important;`,
+    `  --fts-bg-subtle: ${tokens.background.bgSubtle} !important;`,
+    `  --fts-bg-surface: ${tokens.background.bgSurface} !important;`,
+    `  --fts-bg-sunken: ${tokens.background.bgSunken} !important;`,
+    `  --fts-text-primary: ${tokens.text.textPrimary} !important;`,
+    `  --fts-text-secondary: ${tokens.text.textSecondary} !important;`,
+    `  --fts-text-tertiary: ${tokens.text.textTertiary} !important;`,
+    `  --fts-text-disabled: ${tokens.text.textDisabled} !important;`,
+    `  --fts-border-base: ${tokens.border.borderBase} !important;`,
+    `  --fts-border-subtle: ${tokens.border.borderSubtle} !important;`,
+    `  --fts-border-focus: ${tokens.border.borderFocus} !important;`,
+    `  --fts-brand-primary: ${tokens.brand.brandPrimary} !important;`,
+    `  --fts-brand-hover: ${tokens.brand.brandHover} !important;`,
+    `  --fts-brand-active: ${tokens.brand.brandActive} !important;`,
+    `  --fts-brand-surface: ${tokens.brand.brandSurface} !important;`,
+    `  --fts-brand-text: ${tokens.brand.brandText} !important;`,
+    `  --fts-accent-primary: ${tokens.accent.accentPrimary} !important;`,
+    `  --fts-accent-hover: ${tokens.accent.accentHover} !important;`,
+    `  --fts-accent-surface: ${tokens.accent.accentSurface} !important;`,
+    `  --fts-status-success: ${tokens.status.success} !important;`,
+    `  --fts-status-warning: ${tokens.status.warning} !important;`,
+    `  --fts-status-error: ${tokens.status.error} !important;`,
+    `  --fts-status-info: ${tokens.status.info} !important;`,
+    `  --fts-radius-sm: ${tokens.shape.radiusSm} !important;`,
+    `  --fts-radius-md: ${tokens.shape.radiusMd} !important;`,
+    `  --fts-radius-lg: ${tokens.shape.radiusLg} !important;`,
+    `  --fts-shadow-sm: ${tokens.shape.shadowSm} !important;`,
+    `  --fts-shadow-md: ${tokens.shape.shadowMd} !important;`,
+    `  --fts-shadow-lg: ${tokens.shape.shadowLg} !important;`,
     '}',
   ]
   return lines.join('\n')
@@ -147,6 +247,7 @@ export class ThemeStudioEngine {
   private customThemes: ThemeDefinition[] = []
   private listeners: Set<ThemeStudioListener> = new Set()
   private initialized: boolean = false
+  private syncSeq: number = 0
 
   public constructor() {
     this.restoreFromStorage()
@@ -191,6 +292,7 @@ export class ThemeStudioEngine {
     const target = all.find(t => t.id === themeId)
     if (!target) return false
 
+    this.syncSeq++
     this.activeThemeId = target.id
     this.activeTheme = target
     this.applyThemeToDom(target)
@@ -222,6 +324,7 @@ export class ThemeStudioEngine {
       this.customThemes.push(normalized)
     }
 
+    this.syncSeq++
     this.activeThemeId = normalized.id
     this.activeTheme = normalized
     this.applyThemeToDom(normalized)
@@ -235,6 +338,7 @@ export class ThemeStudioEngine {
     this.customThemes = this.customThemes.filter(t => t.id !== themeId)
     if (this.customThemes.length === initialLen) return false
 
+    this.syncSeq++
     if (this.activeThemeId === themeId) {
       this.setActiveTheme(DEEPSEEK_CLASSIC.id)
     } else {
@@ -246,6 +350,7 @@ export class ThemeStudioEngine {
   }
 
   public resetAll(): void {
+    this.syncSeq++
     this.customThemes = []
     this.setActiveTheme(DEEPSEEK_CLASSIC.id)
     this.persistToStorage()
@@ -271,8 +376,9 @@ export class ThemeStudioEngine {
       styleTag = document.createElement('style')
       styleTag.id = STYLE_TAG_ID
       styleTag.setAttribute('data-plugin', 'fabric-theme-studio')
-      document.head.appendChild(styleTag)
     }
+    // Always move to the end of head so it takes highest cascade priority
+    document.head.appendChild(styleTag)
     styleTag.textContent = generateCssVariables(theme.tokens)
 
     document.body.setAttribute('data-fabric-theme', theme.id)
@@ -332,6 +438,7 @@ export class ThemeStudioEngine {
 
   private async syncWithHost(): Promise<void> {
     if (typeof fetch === 'undefined') return
+    const currentSeq = this.syncSeq
     try {
       const res = await fetch('/api/theme-studio/state')
       if (res.ok) {
@@ -341,10 +448,14 @@ export class ThemeStudioEngine {
           if (payload.customThemes && payload.customThemes.length > 0) {
             this.customThemes = [...payload.customThemes]
           }
-          if (payload.activeThemeId) {
-            this.activeThemeId = payload.activeThemeId
-            this.activeTheme = payload.activeTheme ?? this.activeTheme
-            this.applyThemeToDom(this.activeTheme)
+          if (this.syncSeq === currentSeq && payload.activeThemeId) {
+            const all = this.getAllThemes()
+            const match = all.find(t => t.id === payload.activeThemeId)
+            if (match) {
+              this.activeThemeId = match.id
+              this.activeTheme = match
+              this.applyThemeToDom(match)
+            }
           }
           this.notify()
         }
