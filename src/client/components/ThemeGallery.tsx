@@ -85,38 +85,37 @@ export function ThemeGallery(props: FabricPageProps) {
       />
 
       <Section
-        title="主题库浏览"
+        title="主题预设与个性化定制"
         description="选择适合当前工作环境的色彩主题，支持即时切换与自适应对比度检测"
-        actions={
-          <div className={styles.filterBar}>
-            <div className={styles.categoryTabs}>
-              {[
-                { id: 'all', label: '全部' },
-                { id: 'dark', label: '深色' },
-                { id: 'light', label: '浅色' },
-                { id: 'special', label: '特色' },
-                { id: 'custom', label: '自定义' },
-              ].map(tab => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  className={`${styles.tabBtn} ${filter === tab.id ? styles.tabBtnActive : ''}`}
-                  onClick={() => setFilter(tab.id)}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-            <input
-              type="text"
-              placeholder="搜索主题..."
-              className={styles.searchInput}
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-            />
-          </div>
-        }
       >
+        <div className={styles.filterBar}>
+          <div className={styles.categoryTabs}>
+            {[
+              { id: 'all', label: '全部' },
+              { id: 'dark', label: '深色' },
+              { id: 'light', label: '浅色' },
+              { id: 'special', label: '特色' },
+              { id: 'custom', label: '自定义' },
+            ].map(tab => (
+              <button
+                key={tab.id}
+                type="button"
+                className={`${styles.tabBtn} ${filter === tab.id ? styles.tabBtnActive : ''}`}
+                onClick={() => setFilter(tab.id)}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+          <input
+            type="text"
+            placeholder="搜索主题名称、作者、标签..."
+            className={styles.searchInput}
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </div>
+
         {filteredThemes.length === 0 ? (
           <EmptyState
             title="未找到匹配的主题"
