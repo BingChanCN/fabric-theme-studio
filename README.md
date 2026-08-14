@@ -28,7 +28,7 @@ pnpm pack --pack-destination .pack-probe
 ### 2. 添加到 DSH Profile
 
 ```bash
-dsh plugin --profile web add "D:/dsh-dev/fabric-theme-studio/.pack-probe/dsh-do-fabric-theme-studio-0.6.1.tgz"
+dsh plugin --profile web add "D:/dsh-dev/fabric-theme-studio/.pack-probe/dsh-do-fabric-theme-studio-0.6.2.tgz"
 dsh --profile web
 ```
 
