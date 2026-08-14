@@ -14,7 +14,6 @@ import {
   Section,
   ToolbarButton,
   Z_INDEX,
-  tokens as fabricTokens,
   useFabricConfig,
 } from 'fabric/ui'
 import type { FabricConfigSchema } from 'fabric/sdk'
@@ -57,16 +56,25 @@ const DEMO_SCHEMA: FabricConfigSchema = {
   notes: {
     type: 'textarea',
     title: '备注说明 (Notes)',
-    default: 'Fabric Phase 2 Schema Engine Demo',
+    default: 'Fabric Phase 3 Commands & IMC Demo',
     placeholder: '输入自定义说明...',
   },
 }
 
+const SHORTCUT_REGISTRY = [
+  { key: 'Mod + K', desc: '打开 Fabric 全局命令搜索面板 (Command Palette)', kind: 'Fabric 核心' },
+  { key: 'Mod + Shift + T', desc: '跳转至「主题工坊」浏览预设画廊', kind: 'Theme Studio' },
+  { key: 'Mod + Shift + E', desc: '跳转至「调色盘」微调设计 Token', kind: 'Theme Studio' },
+  { key: 'Mod + Shift + S', desc: '跳转至「全景展台」检视组件', kind: 'Theme Studio' },
+  { key: 'Mod + Alt + T', desc: '轮播切换并激活下一套主题预设', kind: 'Theme Studio' },
+  { key: 'Mod + Shift + X', desc: '打包并导出当前活动主题至剪贴板', kind: 'Theme Studio' },
+]
+
 export function ComponentShowcase(props: FabricPageProps) {
-  const { activeTheme } = useThemeStudio()
+  const { activeTheme, allThemes, setActiveTheme } = useThemeStudio()
   const config = useFabricConfig('fabric-theme-studio')
   const [asyncMode, setAsyncMode] = useState<'loaded' | 'loading' | 'empty' | 'error'>('loaded')
-  const [inputText, setInputText] = useState('DeepSeek Harness + Fabric v0.3.0')
+  const [inputText, setInputText] = useState('DeepSeek Harness + Fabric v0.4.0')
   const [toggleChecked, setToggleChecked] = useState(true)
   const [sliderVal, setSliderVal] = useState(72)
 
@@ -76,10 +84,10 @@ export function ComponentShowcase(props: FabricPageProps) {
     endpoint: 'https://telemetry.local/v1',
     logLevel: 'info',
     sampleRate: 80,
-    notes: 'Fabric Phase 2 Schema Engine Demo',
+    notes: 'Fabric Phase 3 Commands & IMC Demo',
   })
 
-  // Fabric v0.2.0 & v0.3.0 Interaction Demos
+  // Fabric v0.2.0 & v0.3.0 & v0.4.0 Interaction Demos
   const [demoModalOpen, setDemoModalOpen] = useState(false)
   const [demoModalSize, setDemoModalSize] = useState<'sm' | 'md' | 'lg'>('md')
   const [popoverPlacement, setPopoverPlacement] = useState<'top' | 'bottom' | 'left' | 'right'>('bottom')
@@ -92,6 +100,18 @@ export function ComponentShowcase(props: FabricPageProps) {
       error: '错误：模拟的服务端连接异常，请重试',
     }
     props.notify(toneLabels[tone], { tone, timeoutMs: 4000 })
+  }
+
+  const handleTestCapabilityCycle = () => {
+    const nextIndex = (allThemes.findIndex(t => t.id === activeTheme.id) + 1) % allThemes.length
+    const next = allThemes[nextIndex]
+    if (next) {
+      setActiveTheme(next.id)
+      props.notify(`[IMC capability] 跨插件调用成功: 切换至「${next.name}」`, {
+        tone: 'success',
+        timeoutMs: 2500,
+      })
+    }
   }
 
   const dropdownDemoItems = [
@@ -122,7 +142,7 @@ export function ComponentShowcase(props: FabricPageProps) {
     <Page className={styles.showcasePage ?? ''}>
       <PageHeader
         title="全景展台 (Component Showcase)"
-        description="全量呈现 Fabric UI v0.3.0 Phase 2 模式化配置引擎、ModMenu 元数据与浮层基建"
+        description="全量呈现 Fabric v0.4.0 Phase 3 命令系统、快捷键、跨插件 IMC 能力与浮层设计基座"
         actions={
           <div className={styles.headerActions}>
             <ToolbarButton
@@ -162,7 +182,67 @@ export function ComponentShowcase(props: FabricPageProps) {
         </div>
       </Section>
 
-      {/* Section 2: Phase 2 Schema Config & ConfigForm Demo */}
+      {/* Section 2: Phase 3 Commands & IMC Capabilities Demo */}
+      <Section
+        title="Fabric v0.4.0 命令面板与跨插件能力 (Commands & Capabilities IMC)"
+        description="支持 Mod+K 全局命令搜索唤起、专属热键绑定与跨插件接口注入交互"
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <button
+              type="button"
+              className={styles.btnPrimary}
+              onClick={() => {
+                props.notify('按按下键盘「Mod+K」（Mac 为 Cmd+K / Win 为 Ctrl+K）即可唤起全局命令面板', {
+                  tone: 'info',
+                  timeoutMs: 4000,
+                })
+              }}
+            >
+              按 Mod+K 打开命令面板
+            </button>
+            <button
+              type="button"
+              className={styles.btnSecondary}
+              onClick={handleTestCapabilityCycle}
+            >
+              测试 IMC Capability (theme-studio-api.cycleNextTheme)
+            </button>
+          </div>
+
+          <div style={{ marginTop: '8px' }}>
+            <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--dsw-alias-label-primary)' }}>
+              已注册全局命令与快捷键矩阵：
+            </span>
+            <div style={{ marginTop: '8px', border: '1px solid var(--dsw-alias-border-l2, #333)', borderRadius: '6px', overflow: 'hidden' }}>
+              {SHORTCUT_REGISTRY.map((sc, idx) => (
+                <div
+                  key={sc.key}
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '8px 14px',
+                    borderBottom: idx < SHORTCUT_REGISTRY.length - 1 ? '1px solid var(--dsw-alias-border-l2, #282833)' : 'none',
+                    backgroundColor: idx % 2 === 0 ? 'var(--dsw-alias-bg-layer-1, #181820)' : 'var(--dsw-alias-bg-base, #121218)',
+                    fontSize: '12px',
+                  }}
+                >
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <code style={{ background: 'var(--dsw-alias-bg-layer-3, #2a2a38)', padding: '2px 8px', borderRadius: '4px', color: 'var(--dsw-alias-brand-primary, #4176e6)', fontWeight: 'bold' }}>
+                      {sc.key}
+                    </code>
+                    <span style={{ color: 'var(--dsw-alias-label-primary)' }}>{sc.desc}</span>
+                  </div>
+                  <Badge tone={sc.kind === 'Fabric 核心' ? 'info' : 'neutral'}>{sc.kind}</Badge>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </Section>
+
+      {/* Section 3: Phase 2 Schema Config & ConfigForm Demo */}
       <Section
         title="Fabric v0.3.0 模式化配置引擎 (Schema Config & ConfigForm)"
         description="通过 JSON Schema 声明配置，自动生成类型安全的表单并与 Host 端同步持久化"
@@ -187,7 +267,7 @@ export function ComponentShowcase(props: FabricPageProps) {
         </div>
       </Section>
 
-      {/* Section 3: Fabric v0.2.0 Overlay Primitives */}
+      {/* Section 4: Fabric v0.2.0 Overlay Primitives */}
       <Section
         title="Fabric 浮层与交互基座 (Overlays & Popovers)"
         description="内置 Modal 模态弹窗、Popover 气泡卡片与 Dropdown 下拉菜单，自适应当前主题"
@@ -301,7 +381,7 @@ export function ComponentShowcase(props: FabricPageProps) {
         </div>
       </Section>
 
-      {/* Section 4: Z-Index and Design Tokens Reference */}
+      {/* Section 5: Z-Index and Design Tokens Reference */}
       <Section
         title="Fabric 设计系统分层规范 (Z-Index Hierarchy)"
         description="框架内置标准层级常量，杜绝下游插件间的层级冲突"
@@ -352,7 +432,7 @@ export function ComponentShowcase(props: FabricPageProps) {
         </div>
       </Section>
 
-      {/* Section 5: Fabric Badges */}
+      {/* Section 6: Fabric Badges */}
       <Section title="Fabric 徽标状态阶梯 (Badges)" description="五种语义色阶在当前主题下的对比表现">
         <div className={styles.badgeMatrix}>
           <div className={styles.badgeItem}>
@@ -378,7 +458,7 @@ export function ComponentShowcase(props: FabricPageProps) {
         </div>
       </Section>
 
-      {/* Section 6: Buttons and Action Controls */}
+      {/* Section 7: Buttons and Action Controls */}
       <Section title="按钮与工具栏动作 (Buttons & Actions)" description="各级操作按钮与悬停反馈">
         <div className={styles.buttonMatrix}>
           <button type="button" className={styles.btnPrimary}>
@@ -399,7 +479,7 @@ export function ComponentShowcase(props: FabricPageProps) {
         </div>
       </Section>
 
-      {/* Section 7: Interactive Forms */}
+      {/* Section 8: Interactive Forms */}
       <Section title="表单交互控件 (Form Controls)" description="输入框、滑块与复选框">
         <div className={styles.formRow}>
           <div className={styles.formField}>
@@ -440,7 +520,7 @@ export function ComponentShowcase(props: FabricPageProps) {
         </div>
       </Section>
 
-      {/* Section 8: Toast Notifications */}
+      {/* Section 9: Toast Notifications */}
       <Section title="通知消息反馈 (Toast Notifications)" description="触发全局悬浮通知">
         <div className={styles.toastTriggerRow}>
           <button
@@ -474,7 +554,7 @@ export function ComponentShowcase(props: FabricPageProps) {
         </div>
       </Section>
 
-      {/* Section 9: Async Lifecycle States */}
+      {/* Section 10: Async Lifecycle States */}
       <Section
         title="异步生命周期状态 (Async States)"
         description="加载中、空列表与错误回退视图"

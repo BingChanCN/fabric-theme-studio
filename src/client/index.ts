@@ -1,6 +1,7 @@
 import React from 'react'
 import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
 import type {} from 'fabric/client'
+import type { ThemeDefinition } from '../types.ts'
 import { ComponentShowcase } from './components/ComponentShowcase.tsx'
 import { ThemeGallery } from './components/ThemeGallery.tsx'
 import { ThemeOverlayHud } from './components/ThemeOverlayHud.tsx'
@@ -10,10 +11,23 @@ import { TokenStudio } from './components/TokenStudio.tsx'
 import { GridIcon, PaletteIcon, SlidersIcon } from './icons.tsx'
 import { themeEngine } from './theme-engine.ts'
 
+/** Public Inter-Mod Communication (IMC) API exported via `ctx.fabric.registerCapability`. */
+export interface ThemeStudioCapabilityApi {
+  getActiveTheme(): ThemeDefinition
+  setActiveTheme(themeId: string): void
+  getPresets(): readonly ThemeDefinition[]
+  getCustomThemes(): readonly ThemeDefinition[]
+  getAllThemes(): readonly ThemeDefinition[]
+  cycleNextTheme(): ThemeDefinition
+  saveCustomTheme(theme: ThemeDefinition): void
+  deleteCustomTheme(themeId: string): boolean
+  resetAll(): void
+}
+
 /** Required service: Fabric must be available before this client extension starts. */
 export const inject = ['fabric'] as const
 
-/** Client-side apply: registers all theme studio pages, toolbar actions, overlay HUD, schema config, and mod metadata into Fabric. */
+/** Client-side apply: registers all theme studio pages, toolbar actions, overlay HUD, schema config, commands, capabilities, and mod metadata into Fabric. */
 export function apply(ctx: ClientContext): void {
   // Initialize theme engine with Fabric Theme Bridge service and wire disposal effect
   ctx.effect(() => {
@@ -28,7 +42,7 @@ export function apply(ctx: ClientContext): void {
     kind: 'mod',
     id: 'fabric-theme-studio',
     name: 'Fabric Theme Studio',
-    version: '0.3.0',
+    version: '0.4.0',
     description: '交互式主题调色工坊与个性化设计系统展台，驱动 DSH 宿主与 Fabric 扩展组件',
     icon: React.createElement(PaletteIcon, { size: 16 }),
   })
@@ -80,7 +94,99 @@ export function apply(ctx: ClientContext): void {
     },
   })
 
-  // 3. Theme Gallery Page (with Palette icon, 8 presets badge, and keepAlive state)
+  // 3. Inter-Mod Communication Capability (IMC)
+  const capabilityApi: ThemeStudioCapabilityApi = {
+    getActiveTheme: () => themeEngine.getActiveTheme(),
+    setActiveTheme: (id: string) => themeEngine.setActiveTheme(id),
+    getPresets: () => themeEngine.getPresets(),
+    getCustomThemes: () => themeEngine.getCustomThemes(),
+    getAllThemes: () => themeEngine.getAllThemes(),
+    cycleNextTheme: () => {
+      const all = themeEngine.getAllThemes()
+      const current = themeEngine.getActiveTheme()
+      const nextIndex = (all.findIndex(t => t.id === current.id) + 1) % all.length
+      const next = all[nextIndex] ?? all[0]!
+      themeEngine.setActiveTheme(next.id)
+      return next
+    },
+    saveCustomTheme: (theme: ThemeDefinition) => themeEngine.saveCustomTheme(theme),
+    deleteCustomTheme: (themeId: string) => themeEngine.deleteCustomTheme(themeId),
+    resetAll: () => themeEngine.resetAll(),
+  }
+  ctx.fabric.registerCapability('theme-studio-api', capabilityApi)
+
+  // 4. Command Palette Contributions (Mod+K searchable & global shortcut dispatch)
+  ctx.fabric.register({
+    kind: 'command',
+    id: 'theme-studio.open-gallery',
+    title: '主题工坊: 打开主题预设画廊',
+    description: '浏览并应用 8 大经典设计预设及自定义色彩体系',
+    shortcut: 'Mod+Shift+T',
+    pluginId: 'fabric-theme-studio',
+    order: 10,
+    handler: () => {
+      ctx.fabric.open('theme-gallery')
+    },
+  })
+
+  ctx.fabric.register({
+    kind: 'command',
+    id: 'theme-studio.open-studio',
+    title: '调色盘: 打开 Token 交互微调',
+    description: '调节 DSH 与 Fabric 语义设计变量与对比度',
+    shortcut: 'Mod+Shift+E',
+    pluginId: 'fabric-theme-studio',
+    order: 20,
+    handler: () => {
+      ctx.fabric.open('theme-studio')
+    },
+  })
+
+  ctx.fabric.register({
+    kind: 'command',
+    id: 'theme-studio.open-showcase',
+    title: '全景展台: 打开全量组件与基建演练',
+    description: '检视 Fabric v0.4.0 命令、能力与浮层组件表现',
+    shortcut: 'Mod+Shift+S',
+    pluginId: 'fabric-theme-studio',
+    order: 30,
+    handler: () => {
+      ctx.fabric.open('component-showcase')
+    },
+  })
+
+  ctx.fabric.register({
+    kind: 'command',
+    id: 'theme-studio.cycle-theme',
+    title: '主题工坊: 快速轮播下一套主题',
+    description: '依次流转并激活下一套主题色彩体系',
+    shortcut: 'Mod+Alt+T',
+    pluginId: 'fabric-theme-studio',
+    order: 40,
+    handler: () => {
+      const next = capabilityApi.cycleNextTheme()
+      ctx.fabric.notify(`已快捷切换主题至「${next.name}」`, { tone: 'info', timeoutMs: 2000 })
+    },
+  })
+
+  ctx.fabric.register({
+    kind: 'command',
+    id: 'theme-studio.export-json',
+    title: '主题工坊: 导出主题配置为 JSON',
+    description: '打包并复制主题配置至系统剪贴板',
+    shortcut: 'Mod+Shift+X',
+    pluginId: 'fabric-theme-studio',
+    order: 50,
+    handler: () => {
+      const theme = themeEngine.getActiveTheme()
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        void navigator.clipboard.writeText(JSON.stringify(theme, null, 2))
+        ctx.fabric.notify(`已复制主题「${theme.name}」JSON 到剪贴板`, { tone: 'success', timeoutMs: 2000 })
+      }
+    },
+  })
+
+  // 5. Theme Gallery Page (with Palette icon, 8 presets badge, and keepAlive state)
   ctx.fabric.register({
     kind: 'page',
     id: 'theme-gallery',
@@ -89,10 +195,11 @@ export function apply(ctx: ClientContext): void {
     icon: React.createElement(PaletteIcon, { size: 16 }),
     badge: '8',
     keepAlive: true,
+    pluginId: 'fabric-theme-studio',
     component: ThemeGallery,
   })
 
-  // 4. Token Studio (Customizer) Page (with Sliders icon and keepAlive state)
+  // 6. Token Studio (Customizer) Page (with Sliders icon and keepAlive state)
   ctx.fabric.register({
     kind: 'page',
     id: 'theme-studio',
@@ -100,10 +207,11 @@ export function apply(ctx: ClientContext): void {
     label: '调色盘',
     icon: React.createElement(SlidersIcon, { size: 16 }),
     keepAlive: true,
+    pluginId: 'fabric-theme-studio',
     component: TokenStudio,
   })
 
-  // 5. Component Showcase Page (with Grid icon and keepAlive state)
+  // 7. Component Showcase Page (with Grid icon and keepAlive state)
   ctx.fabric.register({
     kind: 'page',
     id: 'component-showcase',
@@ -111,10 +219,11 @@ export function apply(ctx: ClientContext): void {
     label: '全景展台',
     icon: React.createElement(GridIcon, { size: 16 }),
     keepAlive: true,
+    pluginId: 'fabric-theme-studio',
     component: ComponentShowcase,
   })
 
-  // 6. Workbench Header Toolbar Action
+  // 8. Workbench Header Toolbar Action
   ctx.fabric.register({
     kind: 'toolbar',
     id: 'theme-quick-switch',
@@ -122,7 +231,7 @@ export function apply(ctx: ClientContext): void {
     component: ThemeToolbarAction,
   })
 
-  // 7. Global Shell Overlay (Floating HUD)
+  // 9. Global Shell Overlay (Floating HUD)
   ctx.fabric.register({
     kind: 'overlay',
     id: 'theme-overlay-hud',
@@ -130,7 +239,7 @@ export function apply(ctx: ClientContext): void {
     component: ThemeOverlayHud,
   })
 
-  // 8. DSH Plugins Settings Tab Contribution
+  // 10. DSH Plugins Settings Tab Contribution
   ctx.fabric.register({
     kind: 'settings',
     id: 'theme-studio-settings',

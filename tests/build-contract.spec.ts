@@ -12,13 +12,13 @@ describe('Build Contract & Distribution Artifacts', () => {
   it('verifies package.json configuration', () => {
     const pkg = JSON.parse(readFileSync(packageJsonPath, 'utf-8'))
     expect(pkg.name).toBe('fabric-theme-studio')
-    expect(pkg.version).toBe('0.3.0')
+    expect(pkg.version).toBe('0.4.0')
     expect(pkg.main).toBe('lib/index.js')
     expect(pkg.exports['.']).toBe('./lib/index.js')
     expect(pkg.exports['./client']).toBe('./lib/client.js')
     expect(pkg.dsh?.bundle?.patch).toBe('./cordis.patch.yml')
     expect(pkg.dsh?.client?.inject).toContain('fabric')
-    expect(pkg.peerDependencies?.fabric).toBe('^0.3.0')
+    expect(pkg.peerDependencies?.fabric).toBe('^0.4.0')
   })
 
   it('verifies cordis.patch.yml consistency', () => {
@@ -33,7 +33,7 @@ describe('Build Contract & Distribution Artifacts', () => {
     expect(hostContent).toContain('/api/theme-studio/state')
   })
 
-  it('verifies client bundle adheres to DSH ModuleLoader contract and Phase 2 contributions', () => {
+  it('verifies client bundle adheres to DSH ModuleLoader contract and Phase 3 contributions', () => {
     expect(existsSync(clientBundlePath)).toBe(true)
     const clientContent = readFileSync(clientBundlePath, 'utf-8')
 
@@ -48,6 +48,14 @@ describe('Build Contract & Distribution Artifacts', () => {
     // Must register mod and config contributions
     expect(clientContent).toContain('registerConfig')
     expect(clientContent).toMatch(/kind:\s*["']mod["']/)
+
+    // Must register IMC capabilities and Phase 3 commands
+    expect(clientContent).toContain('registerCapability')
+    expect(clientContent).toContain('"theme-studio-api"')
+    expect(clientContent).toMatch(/kind:\s*["']command["']/)
+    expect(clientContent).toContain('theme-studio.open-gallery')
+    expect(clientContent).toContain('Mod+Shift+T')
+    expect(clientContent).toContain('Mod+Alt+T')
 
     // Must not bundle or require runtime fabric/client directly
     expect(clientContent).not.toMatch(/require\(["']fabric["']\)/)
