@@ -3,3 +3,4 @@ lib
 .pack-probe
 *.tgz
 .DS_Store
+sc-*.png
