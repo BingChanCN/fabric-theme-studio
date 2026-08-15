@@ -16,5 +16,5 @@ Fabric 官方 Theme Provider。编辑器数据变成 `FabricThemeDefinition`，�
 ```bash
 pnpm build
 pnpm pack --pack-destination .pack-probe
-dsh plugin --profile web add ".pack-probe/dsh-do-fabric-theme-studio-0.7.1.tgz"
+dsh plugin --profile web add ".pack-probe/dsh-do-fabric-theme-studio-0.7.2.tgz"
 ```

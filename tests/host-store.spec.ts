@@ -61,7 +61,7 @@ describe('ThemeHostStore', () => {
 
   it('produces full state payload for client bootstrap', () => {
     const payload = store.getStatePayload()
-    expect(payload.version).toBe('0.7.1')
+    expect(payload.version).toBe('0.7.2')
     expect(payload.activeThemeId).toBe(DEEPSEEK_CLASSIC.id)
     expect(payload.presets.length).toBeGreaterThanOrEqual(8)
     expect(payload.customThemes).toEqual([])

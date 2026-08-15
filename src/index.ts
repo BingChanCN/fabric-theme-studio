@@ -16,7 +16,7 @@ import {
 import type { CustomThemeResourceRequest } from './resources.ts'
 import { BUILTIN_PRESETS, DEEPSEEK_CLASSIC } from './presets.ts'
 
-export const PACKAGE_VERSION = '0.7.1'
+export const PACKAGE_VERSION = '0.7.2'
 
 export function getWallpaperStorageDir(): string {
   const baseDir = process.env.DSH_HOME ?? path.join(os.homedir(), '.dsh')
