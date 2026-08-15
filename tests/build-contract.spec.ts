@@ -12,14 +12,14 @@ describe('Build Contract & Distribution Artifacts', () => {
   it('verifies package.json configuration', () => {
     const pkg = JSON.parse(readFileSync(packageJsonPath, 'utf-8'))
     expect(pkg.name).toBe('@dsh-do/fabric-theme-studio')
-    expect(pkg.version).toBe('0.7.2')
+    expect(pkg.version).toBe('0.7.3')
     expect(pkg.main).toBe('lib/index.js')
     expect(pkg.exports['.']).toBe('./lib/index.js')
     expect(pkg.exports['./client']).toBe('./lib/client.js')
     expect(pkg.dsh?.bundle?.patch).toBe('./cordis.patch.yml')
     expect(pkg.dsh?.client?.inject).toEqual(['@dsh-do/fabric'])
     expect(pkg.dsh?.client?.inject).not.toContain('fabric')
-    expect(pkg.peerDependencies?.['@dsh-do/fabric']).toBe('^0.5.0')
+    expect(pkg.peerDependencies?.['@dsh-do/fabric']).toBe('^0.5.0 || ^0.6.0')
   })
 
   it('verifies cordis.patch.yml consistency', () => {

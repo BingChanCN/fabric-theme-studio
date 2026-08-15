@@ -75,7 +75,7 @@ export function ComponentShowcase(props: FabricPageProps) {
   const { activeTheme, allThemes, setActiveTheme } = useThemeStudio()
   const config = useFabricConfig(props.config(THEME_CONFIG_ID))
   const [asyncMode, setAsyncMode] = useState<'loaded' | 'loading' | 'empty' | 'error'>('loaded')
-  const [inputText, setInputText] = useState('DeepSeek Harness + Fabric v0.4.0')
+  const [inputText, setInputText] = useState('DeepSeek Harness + Fabric v0.6')
   const [toggleChecked, setToggleChecked] = useState(true)
   const [sliderVal, setSliderVal] = useState(72)
 
@@ -88,7 +88,7 @@ export function ComponentShowcase(props: FabricPageProps) {
     notes: 'Fabric Phase 3 Commands & IMC Demo',
   })
 
-  // Fabric v0.2.0 & v0.3.0 & v0.4.0 Interaction Demos
+  // Fabric v0.5 & v0.6 Interaction Demos
   const [demoModalOpen, setDemoModalOpen] = useState(false)
   const [demoModalSize, setDemoModalSize] = useState<'sm' | 'md' | 'lg'>('md')
   const [popoverPlacement, setPopoverPlacement] = useState<'top' | 'bottom' | 'left' | 'right'>('bottom')
@@ -143,7 +143,7 @@ export function ComponentShowcase(props: FabricPageProps) {
     <Page className={styles.showcasePage ?? ''}>
       <PageHeader
         title="全景展台 (Component Showcase)"
-        description="全量呈现 Fabric v0.4.0 Phase 3 命令系统、快捷键、跨插件 IMC 能力与浮层设计基座"
+        description="全量呈现 Fabric 0.6 命令系统、快捷键、跨插件 IMC 能力与浮层设计基座"
         actions={
           <div className={styles.headerActions}>
             <ToolbarButton
@@ -267,7 +267,7 @@ export function ComponentShowcase(props: FabricPageProps) {
 
       {/* Section 2: Phase 3 Commands & IMC Capabilities Demo */}
       <Section
-        title="Fabric v0.4.0 命令面板与跨插件能力 (Commands & Capabilities IMC)"
+        title="Fabric 0.6 命令面板与跨插件能力 (Commands & Capabilities IMC)"
         description="支持 Mod+K 全局命令搜索唤起、专属热键绑定与跨插件接口注入交互"
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>

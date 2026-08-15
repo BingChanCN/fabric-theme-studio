@@ -1,0 +1,25 @@
+name: verify
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.18.3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      # The local workspace link is for out-of-band development; CI builds
+      # against the published Fabric from npm.
+      - run: |
+          sed -i 's|"@dsh-do/fabric": "link:../fabric"|"@dsh-do/fabric": "^0.6.0"|' package.json
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm verify
