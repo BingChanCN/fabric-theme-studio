@@ -14,13 +14,13 @@
 }
 
 .btnSavePrimary {
-  background-color: var(--dsw-alias-brand-primary, #4176e6);
+  background-color: var(--fabric-accent-primary, #4176e6);
   color: #ffffff;
   border: none;
   padding: 8px 18px;
   font-size: 13px;
   font-weight: 500;
-  border-radius: var(--dsw-radius-sm, 6px);
+  border-radius: var(--fabric-radius-sm, 6px);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -41,9 +41,9 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  background-color: var(--dsw-alias-bg-layer-1, #181820);
-  border: 1px solid var(--dsw-alias-border-l2, #333340);
-  border-radius: var(--dsw-radius-md, 8px);
+  background-color: var(--fabric-surface-raised, #181820);
+  border: 1px solid var(--fabric-border-default, #333340);
+  border-radius: var(--fabric-radius-md, 8px);
   padding: 16px;
 }
 
@@ -58,16 +58,16 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background-color: var(--dsw-alias-bg-layer-2, #20202a);
+  background-color: var(--fabric-surface-muted, #20202a);
   padding: 4px 10px;
-  border-radius: var(--dsw-radius-sm, 6px);
-  border: 1px solid var(--dsw-alias-border-l2, #333340);
+  border-radius: var(--fabric-radius-sm, 6px);
+  border: 1px solid var(--fabric-border-default, #333340);
 }
 
 .seedLabel {
   font-size: 12px;
   font-weight: 500;
-  color: var(--dsw-alias-label-secondary, #aaa);
+  color: var(--fabric-content-secondary, #aaa);
 }
 
 .harmonyPills {
@@ -78,9 +78,9 @@
 }
 
 .pillBtn {
-  background-color: var(--dsw-alias-bg-layer-2, #20202a);
-  border: 1px solid var(--dsw-alias-border-l2, #333340);
-  color: var(--dsw-alias-label-secondary, #aaa);
+  background-color: var(--fabric-surface-muted, #20202a);
+  border: 1px solid var(--fabric-border-default, #333340);
+  color: var(--fabric-content-secondary, #aaa);
   padding: 5px 12px;
   font-size: 12px;
   border-radius: 20px;
@@ -89,25 +89,25 @@
 }
 
 .pillBtn:hover {
-  border-color: var(--dsw-alias-brand-primary, #4176e6);
-  color: var(--dsw-alias-label-primary, #fff);
+  border-color: var(--fabric-accent-primary, #4176e6);
+  color: var(--fabric-content-primary, #fff);
 }
 
 .pillBtnActive {
-  background-color: var(--dsw-alias-brand-primary, #4176e6);
-  border-color: var(--dsw-alias-brand-primary, #4176e6);
+  background-color: var(--fabric-accent-primary, #4176e6);
+  border-color: var(--fabric-accent-primary, #4176e6);
   color: #ffffff !important;
   font-weight: 500;
 }
 
 .btnGenerate {
-  background: linear-gradient(135deg, var(--dsw-alias-brand-primary, #4176e6), #9333ea);
+  background: linear-gradient(135deg, var(--fabric-accent-primary, #4176e6), #9333ea);
   color: #ffffff;
   border: none;
   padding: 8px 16px;
   font-size: 13px;
   font-weight: 500;
-  border-radius: var(--dsw-radius-sm, 6px);
+  border-radius: var(--fabric-radius-sm, 6px);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -131,26 +131,26 @@
   justify-content: space-between;
   gap: 16px;
   padding: 12px 16px;
-  background-color: var(--dsw-alias-bg-layer-2, #20202a);
-  border: 1px dashed var(--dsw-alias-border-l2, #444455);
-  border-radius: var(--dsw-radius-sm, 6px);
+  background-color: var(--fabric-surface-muted, #20202a);
+  border: 1px dashed var(--fabric-border-default, #444455);
+  border-radius: var(--fabric-radius-sm, 6px);
   flex-wrap: wrap;
 }
 
 .imageUploadBtn {
-  background-color: var(--dsw-alias-bg-layer-1, #181820);
-  border: 1px solid var(--dsw-alias-border-l2, #444455);
-  color: var(--dsw-alias-label-primary, #ffffff);
+  background-color: var(--fabric-surface-raised, #181820);
+  border: 1px solid var(--fabric-border-default, #444455);
+  color: var(--fabric-content-primary, #ffffff);
   padding: 6px 14px;
   font-size: 12px;
-  border-radius: var(--dsw-radius-sm, 6px);
+  border-radius: var(--fabric-radius-sm, 6px);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .imageUploadBtn:hover {
-  border-color: var(--dsw-alias-brand-primary, #4176e6);
-  background-color: var(--dsw-alias-interactive-bg-hover, rgba(255, 255, 255, 0.05));
+  border-color: var(--fabric-accent-primary, #4176e6);
+  background-color: var(--fabric-interaction-hover, rgba(255, 255, 255, 0.05));
 }
 
 .extractedSwatches {
@@ -163,7 +163,7 @@
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  border: 2px solid var(--dsw-alias-border-l2, #333340);
+  border: 2px solid var(--fabric-border-default, #333340);
   cursor: pointer;
   transition: transform 0.15s ease, border-color 0.15s ease;
   padding: 0;
@@ -183,9 +183,9 @@
 }
 
 .materialCard {
-  background-color: var(--dsw-alias-bg-layer-1, #181820);
-  border: 1px solid var(--dsw-alias-border-l2, #333340);
-  border-radius: var(--dsw-radius-md, 8px);
+  background-color: var(--fabric-surface-raised, #181820);
+  border: 1px solid var(--fabric-border-default, #333340);
+  border-radius: var(--fabric-radius-md, 8px);
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -195,12 +195,12 @@
 .materialTitle {
   font-size: 14px;
   font-weight: 600;
-  color: var(--dsw-alias-label-primary, #ffffff);
+  color: var(--fabric-content-primary, #ffffff);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding-bottom: 8px;
-  border-bottom: 1px solid var(--dsw-alias-border-l1, #282834);
+  border-bottom: 1px solid var(--fabric-border-subtle, #282834);
 }
 
 .materialControlRow {
@@ -212,23 +212,23 @@
 
 .materialLabel {
   font-size: 13px;
-  color: var(--dsw-alias-label-secondary, #cccccc);
+  color: var(--fabric-content-secondary, #cccccc);
 }
 
 .sliderInput {
   flex: 1;
   max-width: 160px;
-  accent-color: var(--dsw-alias-brand-primary, #4176e6);
+  accent-color: var(--fabric-accent-primary, #4176e6);
   cursor: pointer;
 }
 
 .selectInput {
-  background-color: var(--dsw-alias-bg-layer-2, #20202a);
-  border: 1px solid var(--dsw-alias-border-l2, #333340);
-  color: var(--dsw-alias-label-primary, #ffffff);
+  background-color: var(--fabric-surface-muted, #20202a);
+  border: 1px solid var(--fabric-border-default, #333340);
+  color: var(--fabric-content-primary, #ffffff);
   padding: 6px 12px;
   font-size: 12px;
-  border-radius: var(--dsw-radius-sm, 6px);
+  border-radius: var(--fabric-radius-sm, 6px);
   outline: none;
   cursor: pointer;
 }
@@ -236,7 +236,7 @@
 .checkboxInput {
   width: 18px;
   height: 18px;
-  accent-color: var(--dsw-alias-brand-primary, #4176e6);
+  accent-color: var(--fabric-accent-primary, #4176e6);
   cursor: pointer;
 }
 
@@ -246,23 +246,23 @@
   height: 32px;
   border-radius: 4px;
   object-fit: cover;
-  border: 1px solid var(--dsw-alias-border-l2, #333340);
+  border: 1px solid var(--fabric-border-default, #333340);
 }
 
 .wallpaperUrlInput {
   flex: 1;
-  background-color: var(--dsw-alias-bg-layer-2, #20202a);
-  border: 1px solid var(--dsw-alias-border-l2, #333340);
-  color: var(--dsw-alias-label-primary, #ffffff);
+  background-color: var(--fabric-surface-muted, #20202a);
+  border: 1px solid var(--fabric-border-default, #333340);
+  color: var(--fabric-content-primary, #ffffff);
   padding: 6px 10px;
   font-size: 12px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  border-radius: var(--dsw-radius-sm, 6px);
+  border-radius: var(--fabric-radius-sm, 6px);
   outline: none;
 }
 
 .wallpaperUrlInput:focus {
-  border-color: var(--dsw-alias-brand-primary, #4176e6);
+  border-color: var(--fabric-accent-primary, #4176e6);
 }
 
 .wallpaperActions {
@@ -273,28 +273,28 @@
 }
 
 .wallpaperActionBtn {
-  background-color: var(--dsw-alias-bg-layer-2, #20202a);
-  border: 1px solid var(--dsw-alias-border-l2, #444455);
-  color: var(--dsw-alias-label-primary, #ffffff);
+  background-color: var(--fabric-surface-muted, #20202a);
+  border: 1px solid var(--fabric-border-default, #444455);
+  color: var(--fabric-content-primary, #ffffff);
   padding: 5px 10px;
   font-size: 12px;
-  border-radius: var(--dsw-radius-sm, 6px);
+  border-radius: var(--fabric-radius-sm, 6px);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .wallpaperActionBtn:hover {
-  border-color: var(--dsw-alias-brand-primary, #4176e6);
-  background-color: var(--dsw-alias-interactive-bg-hover, rgba(255, 255, 255, 0.08));
+  border-color: var(--fabric-accent-primary, #4176e6);
+  background-color: var(--fabric-interaction-hover, rgba(255, 255, 255, 0.08));
 }
 
 .wallpaperDangerBtn {
   background-color: transparent;
-  border: 1px solid var(--dsw-color-status-error, #f87171);
-  color: var(--dsw-color-status-error, #f87171);
+  border: 1px solid var(--fabric-state-danger-foreground, #f87171);
+  color: var(--fabric-state-danger-foreground, #f87171);
   padding: 5px 10px;
   font-size: 12px;
-  border-radius: var(--dsw-radius-sm, 6px);
+  border-radius: var(--fabric-radius-sm, 6px);
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -307,13 +307,13 @@
 .previewCard {
   border-width: 1px;
   border-style: solid;
-  border-radius: var(--dsw-radius-md, 8px);
+  border-radius: var(--fabric-radius-md, 8px);
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 14px;
   transition: all 0.2s ease;
-  box-shadow: var(--dsw-shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.2));
+  box-shadow: var(--fabric-material-shadow, 0 2px 8px rgba(0, 0, 0, 0.2));
 }
 
 .previewCardHeader {
@@ -409,7 +409,7 @@
 .tokenLabel {
   font-size: 12px;
   font-weight: 500;
-  color: var(--dsw-alias-label-secondary, #a0a0b0);
+  color: var(--fabric-content-secondary, #a0a0b0);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
@@ -422,30 +422,30 @@
 
 .tokenInput {
   flex: 1;
-  background-color: var(--dsw-alias-bg-layer-1, #181820);
-  border: 1px solid var(--dsw-alias-border-l2, #333340);
-  color: var(--dsw-alias-label-primary, #ffffff);
+  background-color: var(--fabric-surface-raised, #181820);
+  border: 1px solid var(--fabric-border-default, #333340);
+  color: var(--fabric-content-primary, #ffffff);
   padding: 8px 12px;
   font-size: 13px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  border-radius: var(--dsw-radius-sm, 6px);
+  border-radius: var(--fabric-radius-sm, 6px);
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
   box-sizing: border-box;
 }
 
 .tokenInput:focus {
-  border-color: var(--dsw-alias-brand-primary, #4176e6);
-  box-shadow: 0 0 0 2px var(--dsw-alias-interactive-bg-active, rgba(65, 118, 230, 0.2));
+  border-color: var(--fabric-accent-primary, #4176e6);
+  box-shadow: 0 0 0 2px var(--fabric-interaction-active, rgba(65, 118, 230, 0.2));
 }
 
 .colorPickerNative {
   width: 34px;
   height: 34px;
   padding: 2px;
-  border: 1px solid var(--dsw-alias-border-l2, #333340);
-  border-radius: var(--dsw-radius-sm, 6px);
-  background-color: var(--dsw-alias-bg-layer-1, #181820);
+  border: 1px solid var(--fabric-border-default, #333340);
+  border-radius: var(--fabric-radius-sm, 6px);
+  background-color: var(--fabric-surface-raised, #181820);
   cursor: pointer;
   outline: none;
   box-sizing: border-box;
@@ -453,7 +453,7 @@
 }
 
 .colorPickerNative:hover {
-  border-color: var(--dsw-alias-brand-primary, #4176e6);
+  border-color: var(--fabric-accent-primary, #4176e6);
 }
 
 .colorPickerNative::-webkit-color-swatch-wrapper {
@@ -477,16 +477,16 @@
 .modalLabel {
   font-size: 12px;
   font-weight: 500;
-  color: var(--dsw-alias-label-secondary, #aaa);
+  color: var(--fabric-content-secondary, #aaa);
 }
 
 .modalInput {
-  background-color: var(--dsw-alias-bg-layer-1, #181820);
-  border: 1px solid var(--dsw-alias-border-l2, #333340);
-  color: var(--dsw-alias-label-primary, #ffffff);
+  background-color: var(--fabric-surface-raised, #181820);
+  border: 1px solid var(--fabric-border-default, #333340);
+  color: var(--fabric-content-primary, #ffffff);
   padding: 8px 12px;
   font-size: 13px;
-  border-radius: var(--dsw-radius-sm, 6px);
+  border-radius: var(--fabric-radius-sm, 6px);
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
   box-sizing: border-box;
@@ -494,32 +494,32 @@
 }
 
 .modalInput:focus {
-  border-color: var(--dsw-alias-brand-primary, #4176e6);
-  box-shadow: 0 0 0 2px var(--dsw-alias-interactive-bg-active, rgba(65, 118, 230, 0.2));
+  border-color: var(--fabric-accent-primary, #4176e6);
+  box-shadow: 0 0 0 2px var(--fabric-interaction-active, rgba(65, 118, 230, 0.2));
 }
 
 .modalBtnCancel {
   background-color: transparent;
-  color: var(--dsw-alias-label-primary, #ffffff);
-  border: 1px solid var(--dsw-alias-border-l2, #444455);
+  color: var(--fabric-content-primary, #ffffff);
+  border: 1px solid var(--fabric-border-default, #444455);
   padding: 8px 16px;
   font-size: 13px;
-  border-radius: var(--dsw-radius-sm, 6px);
+  border-radius: var(--fabric-radius-sm, 6px);
   cursor: pointer;
 }
 
 .modalBtnCancel:hover {
-  background-color: var(--dsw-alias-interactive-bg-hover, rgba(255, 255, 255, 0.08));
+  background-color: var(--fabric-interaction-hover, rgba(255, 255, 255, 0.08));
 }
 
 .modalBtnConfirm {
-  background-color: var(--dsw-alias-brand-primary, #4176e6);
+  background-color: var(--fabric-accent-primary, #4176e6);
   color: #ffffff;
   border: none;
   padding: 8px 18px;
   font-size: 13px;
   font-weight: 500;
-  border-radius: var(--dsw-radius-sm, 6px);
+  border-radius: var(--fabric-radius-sm, 6px);
   cursor: pointer;
   transition: opacity 0.15s ease;
 }

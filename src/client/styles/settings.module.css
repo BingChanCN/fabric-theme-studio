@@ -12,7 +12,7 @@
   justify-content: space-between;
   gap: 16px;
   padding: 14px 0;
-  border-bottom: 1px solid var(--dsw-alias-border-l1, rgba(255, 255, 255, 0.06));
+  border-bottom: 1px solid var(--fabric-border-subtle, rgba(255, 255, 255, 0.06));
 }
 
 .settingLabelGroup {
@@ -24,24 +24,24 @@
 .settingTitle {
   font-size: 14px;
   font-weight: 500;
-  color: var(--dsw-alias-label-primary, #ffffff);
+  color: var(--fabric-content-primary, #ffffff);
 }
 
 .settingDesc {
   font-size: 12px;
-  color: var(--dsw-alias-label-secondary, #a0a0b0);
+  color: var(--fabric-content-secondary, #a0a0b0);
   line-height: 1.4;
 }
 
 .settingSelect {
   appearance: none;
   -webkit-appearance: none;
-  background-color: var(--dsw-alias-bg-layer-1, #16171d);
-  border: 1px solid var(--dsw-alias-border-l2, #333340);
-  color: var(--dsw-alias-label-primary, #ffffff);
+  background-color: var(--fabric-surface-raised, #16171d);
+  border: 1px solid var(--fabric-border-default, #333340);
+  color: var(--fabric-content-primary, #ffffff);
   padding: 8px 32px 8px 12px;
   font-size: 13px;
-  border-radius: var(--dsw-radius-sm, 6px);
+  border-radius: var(--fabric-radius-sm, 6px);
   outline: none;
   cursor: pointer;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23888899' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
@@ -51,13 +51,13 @@
 }
 
 .settingSelect:focus {
-  border-color: var(--dsw-alias-brand-primary, #4176e6);
-  box-shadow: 0 0 0 2px var(--dsw-alias-interactive-bg-active, rgba(65, 118, 230, 0.2));
+  border-color: var(--fabric-accent-primary, #4176e6);
+  box-shadow: 0 0 0 2px var(--fabric-interaction-active, rgba(65, 118, 230, 0.2));
 }
 
 .settingSelect option {
-  background-color: var(--dsw-alias-bg-layer-1, #181820);
-  color: var(--dsw-alias-label-primary, #ffffff);
+  background-color: var(--fabric-surface-raised, #181820);
+  color: var(--fabric-content-primary, #ffffff);
 }
 
 .badgeRow {
@@ -69,7 +69,7 @@
 .btnLink {
   background: transparent;
   border: none;
-  color: var(--dsw-alias-brand-primary, #4176e6);
+  color: var(--fabric-accent-primary, #4176e6);
   font-size: 13px;
   cursor: pointer;
   padding: 0;
@@ -81,19 +81,19 @@
 }
 
 .btnSecondary {
-  background-color: var(--dsw-alias-bg-layer-3, #2a2a38);
-  color: var(--dsw-alias-label-primary, #ffffff);
-  border: 1px solid var(--dsw-alias-border-l2, #444455);
+  background-color: var(--fabric-surface-overlay, #2a2a38);
+  color: var(--fabric-content-primary, #ffffff);
+  border: 1px solid var(--fabric-border-default, #444455);
   padding: 8px 16px;
   font-size: 13px;
   font-weight: 500;
-  border-radius: var(--dsw-radius-sm, 6px);
+  border-radius: var(--fabric-radius-sm, 6px);
   cursor: pointer;
   transition: background-color 0.15s ease;
 }
 
 .btnSecondary:hover {
-  background-color: var(--dsw-alias-interactive-bg-hover, #333345);
+  background-color: var(--fabric-interaction-hover, #333345);
 }
 
 .importBlock {
@@ -101,17 +101,17 @@
   flex-direction: column;
   gap: 10px;
   padding: 18px 0;
-  border-bottom: 1px solid var(--dsw-alias-border-l1, rgba(255, 255, 255, 0.06));
+  border-bottom: 1px solid var(--fabric-border-subtle, rgba(255, 255, 255, 0.06));
 }
 
 .importTextarea {
-  background-color: var(--dsw-alias-bg-layer-1, #16171d);
-  border: 1px solid var(--dsw-alias-border-l2, #333340);
-  color: var(--dsw-alias-label-primary, #ffffff);
+  background-color: var(--fabric-surface-raised, #16171d);
+  border: 1px solid var(--fabric-border-default, #333340);
+  color: var(--fabric-content-primary, #ffffff);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 12px;
   padding: 10px 14px;
-  border-radius: var(--dsw-radius-sm, 6px);
+  border-radius: var(--fabric-radius-sm, 6px);
   outline: none;
   resize: vertical;
   line-height: 1.5;
@@ -119,13 +119,13 @@
 }
 
 .importTextarea:focus {
-  border-color: var(--dsw-alias-brand-primary, #4176e6);
-  box-shadow: 0 0 0 2px var(--dsw-alias-interactive-bg-active, rgba(65, 118, 230, 0.2));
+  border-color: var(--fabric-accent-primary, #4176e6);
+  box-shadow: 0 0 0 2px var(--fabric-interaction-active, rgba(65, 118, 230, 0.2));
 }
 
 .errorHint {
   font-size: 12px;
-  color: var(--dsw-alias-state-error-primary, #ef4444);
+  color: var(--fabric-state-danger-foreground, #ef4444);
 }
 
 .importActions {
@@ -137,13 +137,13 @@
 }
 
 .btnPrimary {
-  background-color: var(--dsw-alias-brand-primary, #4176e6);
+  background-color: var(--fabric-accent-primary, #4176e6);
   color: #ffffff;
   border: none;
   padding: 8px 18px;
   font-size: 13px;
   font-weight: 500;
-  border-radius: var(--dsw-radius-sm, 6px);
+  border-radius: var(--fabric-radius-sm, 6px);
   cursor: pointer;
   transition: opacity 0.15s ease;
 }
@@ -159,12 +159,12 @@
 
 .btnDanger {
   background-color: transparent;
-  color: var(--dsw-alias-state-error-primary, #ef4444);
-  border: 1px solid var(--dsw-alias-state-error-primary, #ef4444);
+  color: var(--fabric-state-danger-foreground, #ef4444);
+  border: 1px solid var(--fabric-state-danger-foreground, #ef4444);
   padding: 8px 16px;
   font-size: 13px;
   font-weight: 500;
-  border-radius: var(--dsw-radius-sm, 6px);
+  border-radius: var(--fabric-radius-sm, 6px);
   cursor: pointer;
   transition: background-color 0.15s ease;
 }

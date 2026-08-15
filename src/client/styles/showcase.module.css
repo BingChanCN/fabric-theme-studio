@@ -17,9 +17,9 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  background-color: var(--dsw-alias-bg-layer-1, #16171d);
-  border-radius: var(--dsw-radius-md, 8px);
-  border: 1px solid var(--dsw-alias-border-l2, #282833);
+  background-color: var(--fabric-surface-raised, #16171d);
+  border-radius: var(--fabric-radius-md, 8px);
+  border: 1px solid var(--fabric-border-default, #282833);
 }
 
 .bannerInfo {
@@ -31,12 +31,12 @@
 .bannerTitle {
   font-size: 16px;
   font-weight: 600;
-  color: var(--dsw-alias-label-primary, #ffffff);
+  color: var(--fabric-content-primary, #ffffff);
 }
 
 .bannerDesc {
   font-size: 13px;
-  color: var(--dsw-alias-label-secondary, #a0a0b0);
+  color: var(--fabric-content-secondary, #a0a0b0);
 }
 
 .bannerBadges {
@@ -57,20 +57,20 @@
   flex-direction: column;
   gap: 8px;
   padding: 16px;
-  background-color: var(--dsw-alias-bg-layer-1, #181820);
-  border: 1px solid var(--dsw-alias-border-l2, #2d2d38);
-  border-radius: var(--dsw-radius-md, 8px);
+  background-color: var(--fabric-surface-raised, #181820);
+  border: 1px solid var(--fabric-border-default, #2d2d38);
+  border-radius: var(--fabric-radius-md, 8px);
 }
 
 .overlayCardTitle {
   font-size: 14px;
   font-weight: 600;
-  color: var(--dsw-alias-label-primary, #fff);
+  color: var(--fabric-content-primary, #fff);
 }
 
 .overlayCardDesc {
   font-size: 12px;
-  color: var(--dsw-alias-label-secondary, #aaa);
+  color: var(--fabric-content-secondary, #aaa);
   margin: 0;
   line-height: 1.5;
   flex: 1;
@@ -91,9 +91,9 @@
 }
 
 .materialCard {
-  background-color: var(--dsw-alias-bg-layer-1, #181820);
-  border: 1px solid var(--dsw-alias-border-l1, rgba(255, 255, 255, 0.08));
-  border-radius: var(--dsw-radius-md, 8px);
+  background-color: var(--fabric-surface-raised, #181820);
+  border: 1px solid var(--fabric-border-subtle, rgba(255, 255, 255, 0.08));
+  border-radius: var(--fabric-radius-md, 8px);
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -103,7 +103,7 @@
 .materialCardTitle {
   font-size: 14px;
   font-weight: 600;
-  color: var(--dsw-alias-label-primary, #ffffff);
+  color: var(--fabric-content-primary, #ffffff);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -111,28 +111,28 @@
 
 .materialCardDesc {
   font-size: 12px;
-  color: var(--dsw-alias-label-secondary, #a0a0b0);
+  color: var(--fabric-content-secondary, #a0a0b0);
   line-height: 1.5;
 }
 
 .acrylicSample {
-  background: var(--dsw-material-acrylic-bg, rgba(20, 22, 28, 0.75));
-  backdrop-filter: blur(var(--dsw-material-acrylic-blur, 16px));
-  -webkit-backdrop-filter: blur(var(--dsw-material-acrylic-blur, 16px));
+  background: var(--fabric-material-acrylic-background, rgba(20, 22, 28, 0.75));
+  backdrop-filter: var(--fabric-material-acrylic-filter, blur(16px));
+  -webkit-backdrop-filter: var(--fabric-material-acrylic-filter, blur(16px));
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 8px;
   padding: 14px;
-  color: var(--dsw-alias-label-primary, #ffffff);
+  color: var(--fabric-content-primary, #ffffff);
   font-size: 13px;
   margin-top: 4px;
 }
 
 .chamferSample {
-  background: var(--dsw-alias-bg-layer-2, #20202a);
+  background: var(--fabric-surface-muted, #20202a);
   box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.15), 0 4px 12px rgba(0, 0, 0, 0.3);
   border-radius: 8px;
   padding: 14px;
-  color: var(--dsw-alias-label-primary, #ffffff);
+  color: var(--fabric-content-primary, #ffffff);
   font-size: 13px;
   margin-top: 4px;
 }
@@ -140,9 +140,9 @@
 /* Z-Index Hierarchy Table */
 .zIndexTableWrapper {
   overflow-x: auto;
-  border-radius: var(--dsw-radius-md, 8px);
-  border: 1px solid var(--dsw-alias-border-l2, #333);
-  background-color: var(--dsw-alias-bg-layer-1, #181820);
+  border-radius: var(--fabric-radius-md, 8px);
+  border: 1px solid var(--fabric-border-default, #333);
+  background-color: var(--fabric-surface-raised, #181820);
 }
 
 .zIndexGrid {
@@ -154,7 +154,7 @@
   display: flex;
   align-items: center;
   padding: 10px 16px;
-  border-bottom: 1px solid var(--dsw-alias-border-l1, rgba(255, 255, 255, 0.05));
+  border-bottom: 1px solid var(--fabric-border-subtle, rgba(255, 255, 255, 0.05));
   font-size: 13px;
 }
 
@@ -166,29 +166,29 @@
   width: 140px;
   font-family: monospace;
   font-weight: 600;
-  color: var(--dsw-alias-brand-primary, #4176e6);
+  color: var(--fabric-accent-primary, #4176e6);
 }
 
 .zIndexVal {
   width: 80px;
   font-family: monospace;
-  color: var(--dsw-alias-label-primary, #ffffff);
+  color: var(--fabric-content-primary, #ffffff);
 }
 
 .zIndexUsage {
   flex: 1;
-  color: var(--dsw-alias-label-secondary, #aaa);
+  color: var(--fabric-content-secondary, #aaa);
 }
 
 /* Buttons and Controls */
 .btnPrimary {
-  background-color: var(--dsw-alias-brand-primary, #4176e6);
+  background-color: var(--fabric-accent-primary, #4176e6);
   color: #ffffff;
   border: none;
   padding: 8px 16px;
   font-size: 13px;
   font-weight: 500;
-  border-radius: var(--dsw-radius-sm, 6px);
+  border-radius: var(--fabric-radius-sm, 6px);
   cursor: pointer;
   transition: opacity 0.15s ease;
 }
@@ -198,37 +198,37 @@
 }
 
 .btnSecondary {
-  background-color: var(--dsw-alias-bg-layer-2, #20202a);
-  color: var(--dsw-alias-label-primary, #ffffff);
-  border: 1px solid var(--dsw-alias-border-l2, #333340);
+  background-color: var(--fabric-surface-muted, #20202a);
+  color: var(--fabric-content-primary, #ffffff);
+  border: 1px solid var(--fabric-border-default, #333340);
   padding: 8px 14px;
   font-size: 13px;
-  border-radius: var(--dsw-radius-sm, 6px);
+  border-radius: var(--fabric-radius-sm, 6px);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .btnSecondary:hover {
-  background-color: var(--dsw-alias-interactive-bg-hover, #2f2f3d);
+  background-color: var(--fabric-interaction-hover, #2f2f3d);
 }
 
 .btnSurface {
-  background-color: var(--dsw-alias-brand-subtle, rgba(65, 118, 230, 0.15));
-  color: var(--dsw-alias-brand-primary, #4176e6);
-  border: 1px solid var(--dsw-alias-brand-primary, #4176e6);
+  background-color: var(--fabric-accent-surface, rgba(65, 118, 230, 0.15));
+  color: var(--fabric-accent-primary, #4176e6);
+  border: 1px solid var(--fabric-accent-primary, #4176e6);
   padding: 8px 14px;
   font-size: 13px;
-  border-radius: var(--dsw-radius-sm, 6px);
+  border-radius: var(--fabric-radius-sm, 6px);
   cursor: pointer;
 }
 
 .btnGhost {
   background: transparent;
-  color: var(--dsw-alias-label-primary, #ffffff);
-  border: 1px solid var(--dsw-alias-border-l2, #333340);
+  color: var(--fabric-content-primary, #ffffff);
+  border: 1px solid var(--fabric-border-default, #333340);
   padding: 8px 14px;
   font-size: 13px;
-  border-radius: var(--dsw-radius-sm, 6px);
+  border-radius: var(--fabric-radius-sm, 6px);
   cursor: pointer;
 }
 
@@ -240,23 +240,23 @@
 
 .inputLabel {
   font-size: 12px;
-  color: var(--dsw-alias-label-secondary, #aaa);
+  color: var(--fabric-content-secondary, #aaa);
 }
 
 .textInput {
-  background-color: var(--dsw-alias-bg-layer-1, #181820);
-  border: 1px solid var(--dsw-alias-border-l2, #333340);
-  color: var(--dsw-alias-label-primary, #ffffff);
+  background-color: var(--fabric-surface-raised, #181820);
+  border: 1px solid var(--fabric-border-default, #333340);
+  color: var(--fabric-content-primary, #ffffff);
   padding: 8px 12px;
   font-size: 13px;
-  border-radius: var(--dsw-radius-sm, 6px);
+  border-radius: var(--fabric-radius-sm, 6px);
   outline: none;
   width: 100%;
   box-sizing: border-box;
 }
 
 .textInput:focus {
-  border-color: var(--dsw-alias-brand-primary, #4176e6);
+  border-color: var(--fabric-accent-primary, #4176e6);
 }
 
 .checkboxLabel {
@@ -274,8 +274,8 @@
   height: 18px;
   margin: 0;
   border-radius: 4px;
-  border: 1.5px solid var(--dsw-alias-border-l2, #555566);
-  background: var(--dsw-alias-bg-layer-1, #1b1b22);
+  border: 1.5px solid var(--fabric-border-default, #555566);
+  background: var(--fabric-surface-raised, #1b1b22);
   cursor: pointer;
   display: inline-grid;
   place-content: center;
@@ -283,8 +283,8 @@
 }
 
 .checkboxLabel input[type="checkbox"]:checked {
-  background-color: var(--dsw-alias-brand-primary, #4176e6);
-  border-color: var(--dsw-alias-brand-primary, #4176e6);
+  background-color: var(--fabric-accent-primary, #4176e6);
+  border-color: var(--fabric-accent-primary, #4176e6);
 }
 
 .checkboxLabel input[type="checkbox"]:checked::after {
@@ -301,16 +301,16 @@
 .tabGroup {
   display: flex;
   gap: 4px;
-  background: var(--dsw-alias-bg-layer-1, #181820);
+  background: var(--fabric-surface-raised, #181820);
   padding: 3px;
   border-radius: 6px;
-  border: 1px solid var(--dsw-alias-border-l2, #333340);
+  border: 1px solid var(--fabric-border-default, #333340);
 }
 
 .tabBtn {
   background: transparent;
   border: none;
-  color: var(--dsw-alias-label-secondary, #a0a0b0);
+  color: var(--fabric-content-secondary, #a0a0b0);
   padding: 4px 10px;
   font-size: 11px;
   font-weight: 500;
@@ -319,7 +319,7 @@
 }
 
 .tabBtnActive {
-  background-color: var(--dsw-alias-brand-primary, #4176e6);
+  background-color: var(--fabric-accent-primary, #4176e6);
   color: #ffffff;
 }
 
@@ -328,9 +328,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--dsw-alias-bg-layer-1, #16171d);
-  border-radius: var(--dsw-radius-md, 8px);
-  border: 1px solid var(--dsw-alias-border-l1, #282833);
+  background-color: var(--fabric-surface-raised, #16171d);
+  border-radius: var(--fabric-radius-md, 8px);
+  border: 1px solid var(--fabric-border-subtle, #282833);
   padding: 24px;
 }
 
@@ -338,7 +338,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  color: var(--dsw-alias-state-success-primary, #22c55e);
+  color: var(--fabric-state-success-foreground, #22c55e);
   font-size: 14px;
   font-weight: 500;
 }

@@ -16,7 +16,7 @@ import {
   Z_INDEX,
   useFabricConfig,
 } from '@dsh-do/fabric/ui'
-import type { FabricConfigSchema } from '@dsh-do/fabric/sdk'
+import type { FabricConfigSchema } from '@dsh-do/fabric/client'
 import { useThemeStudio } from '../theme-engine.ts'
 import styles from '../styles/showcase.module.css'
 
@@ -72,7 +72,7 @@ const SHORTCUT_REGISTRY = [
 
 export function ComponentShowcase(props: FabricPageProps) {
   const { activeTheme, allThemes, setActiveTheme } = useThemeStudio()
-  const config = useFabricConfig('fabric-theme-studio')
+  const config = useFabricConfig(props.config('dsh-do.fabric-theme-studio.preferences'))
   const [asyncMode, setAsyncMode] = useState<'loaded' | 'loading' | 'empty' | 'error'>('loaded')
   const [inputText, setInputText] = useState('DeepSeek Harness + Fabric v0.4.0')
   const [toggleChecked, setToggleChecked] = useState(true)

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { FabricThemeService } from '@dsh-do/fabric/client'
+import type { FabricThemeProvider } from '@dsh-do/fabric/client'
 import {
   calculateContrastRatio,
   calculateLuminance,
@@ -7,9 +7,8 @@ import {
   deriveStateRamp,
   distinctSurface,
   evaluateContrastGrade,
-  generateCssVariables,
-  generateTokenDictionary,
   parseColorToRgb,
+  toFabricTheme,
   ThemeStudioEngine,
 } from '../src/client/theme-engine.ts'
 import { CYBERPUNK_NEON, DEEPSEEK_CLASSIC, NORD_AURORA, SOLARIZED_LIGHT } from '../src/presets.ts'
@@ -79,44 +78,29 @@ describe('State ramps and surface pairing', () => {
     )
   })
 
-  it('emits distinct chip fg/bg tokens and maps bg-subtle for fabric Badge', () => {
-    const dict = generateTokenDictionary(DEEPSEEK_CLASSIC.tokens, DEEPSEEK_CLASSIC.material, false)
-    expect(dict['--dsw-alias-bg-subtle']).toBe(DEEPSEEK_CLASSIC.tokens.background.bgSubtle)
-    expect(dict['--dsw-alias-bg-elevated']).toBe(DEEPSEEK_CLASSIC.tokens.background.bgElevated)
-    expect(dict['--dsw-alias-label-secondary']).not.toBe(dict['--dsw-alias-bg-subtle'])
-    expect(dict['--dsw-alias-state-success-primary']).not.toBe(dict['--dsw-alias-state-success-secondary'])
-    expect(dict['--dsw-alias-state-success-primary']).not.toBe(dict['--dsw-alias-state-success-tertiary'])
-    expect(dict['--dsw-alias-state-warn-primary']).not.toBe(dict['--dsw-alias-state-warn-secondary'])
-    expect(dict['--dsw-alias-state-error-primary']).not.toBe(dict['--dsw-alias-state-error-secondary'])
-    expect(dict['--dsw-alias-state-business-primary']).not.toBe(dict['--dsw-alias-state-business-tertiary'])
-    expect(dict['--dsw-alias-state-info-primary']).not.toBe(dict['--dsw-alias-state-info-tertiary'])
-  })
-})
-
-describe('CSS Variable Generation', () => {
-  it('generates valid :root, body and DSH theme selectors with --dsw-alias-* and --dsw-* properties', () => {
-    const css = generateCssVariables(DEEPSEEK_CLASSIC.tokens)
-    expect(css).toContain(':root, body, body[data-ds-dark-theme]')
-    expect(css).toContain('--dsw-alias-bg-base: rgb(15, 17, 21) !important;')
-    expect(css).toContain('--dsw-alias-label-primary: rgb(255, 255, 255) !important;')
-    expect(css).toContain('--dsw-alias-brand-primary: rgb(65, 118, 230) !important;')
-    expect(css).toContain('--dsw-color-brand-primary: rgb(65, 118, 230) !important;')
-    expect(css).toContain('--dsw-material-acrylic-bg:')
+  it('maps theme editor values to distinct Fabric semantic roles', () => {
+    const theme = toFabricTheme(DEEPSEEK_CLASSIC)
+    expect(theme.surface.base).toBe(DEEPSEEK_CLASSIC.tokens.background.bgBase)
+    expect(theme.content.primary).toBe(DEEPSEEK_CLASSIC.tokens.text.textPrimary)
+    expect(theme.state.success.foreground).not.toBe(theme.state.success.surface)
+    expect(theme.state.success.foreground).not.toBe(theme.state.success.border)
+    expect(theme.state.warning.foreground).not.toBe(theme.state.warning.surface)
   })
 })
 
 describe('ThemeStudioEngine State Management & Fabric Bridge', () => {
   let engine: ThemeStudioEngine
-  let mockThemeService: FabricThemeService
+  let mockThemeService: FabricThemeProvider
+  let themeTokenCleanup: ReturnType<typeof vi.fn>
   let themeChangeListener: ((t: { dark: boolean }) => void) | undefined
 
   beforeEach(() => {
     themeChangeListener = undefined
+    themeTokenCleanup = vi.fn()
     mockThemeService = {
-      setTokens: vi.fn(() => () => {}),
-      clearTokens: vi.fn(),
-      getTokens: vi.fn(() => ({})),
-      onThemeChange: vi.fn((listener) => {
+      provide: vi.fn(() => themeTokenCleanup) as FabricThemeProvider['provide'],
+      clear: vi.fn(),
+      onChange: vi.fn((listener) => {
         themeChangeListener = listener
         return () => {
           themeChangeListener = undefined
@@ -138,10 +122,11 @@ describe('ThemeStudioEngine State Management & Fabric Bridge', () => {
     expect(success).toBe(true)
     expect(engine.getActiveThemeId()).toBe(NORD_AURORA.id)
     expect(engine.getActiveTheme().name).toBe(NORD_AURORA.name)
-    expect(mockThemeService.setTokens).toHaveBeenCalledWith(
-      'fabric-theme-studio',
+    expect(mockThemeService.provide).toHaveBeenCalledWith(
+      'theme',
       expect.objectContaining({
-        '--dsw-alias-bg-base': NORD_AURORA.tokens.background.bgBase,
+        surface: expect.objectContaining({ base: NORD_AURORA.tokens.background.bgBase }),
+        content: expect.objectContaining({ primary: NORD_AURORA.tokens.text.textPrimary }),
       }),
       expect.objectContaining({ priority: 100, scope: 'global' }),
     )
@@ -233,30 +218,15 @@ describe('ThemeStudioEngine State Management & Fabric Bridge', () => {
     expect(colorToRgba('#fff', 2)).toBe('rgba(255, 255, 255, 1)')
   })
 
-  it('emits acrylic filter/bg from the theme color instead of a hardcoded overlay', () => {
-    const on = generateTokenDictionary(NORD_AURORA.tokens, NORD_AURORA.material, false)
-    expect(on['--dsw-material-acrylic-filter']).toBe('blur(16px)')
-    expect(on['--dsw-material-acrylic-bg']).toMatch(/^rgba\(/)
-    expect(on['--dsw-material-acrylic-bg']).not.toBe('rgba(20, 22, 28, 0.75)')
-    expect(on['--dsw-ambient-intensity']).toBe('0.8')
-
-    const off = generateTokenDictionary(CYBERPUNK_NEON.tokens, CYBERPUNK_NEON.material, false)
-    expect(off['--dsw-material-acrylic-filter']).toBe('none')
-    expect(off['--dsw-material-acrylic-bg']).toBe(CYBERPUNK_NEON.tokens.background.bgBase)
-  })
-
-  it('paints ambient effects on the workbench drawer, not a z-index:-1 body layer', () => {
-    const css = generateCssVariables(CYBERPUNK_NEON.tokens, CYBERPUNK_NEON.material, false)
-    expect(css).toContain('--dsw-material-noise-opacity')
-    expect(css).toContain('--dsw-material-acrylic-blur')
-    expect(css).toContain('--dsw-material-acrylic-filter')
-    expect(css).toContain('[data-fabric-workbench="true"]')
-    expect(css).toContain('data-fabric-ambient="cyber-grid"')
-    expect(css).toContain('data-fabric-ambient-speed')
-    expect(css).toContain('fts-scanline')
-    expect(css).toContain('fts-aurora-drift')
-    expect(css).not.toContain('#fabric-theme-backdrop {')
-    expect(css).not.toContain('z-index: -1')
+  it('emits material semantics from the theme definition', () => {
+    engine.init(mockThemeService)
+    expect(mockThemeService.provide).toHaveBeenCalledWith(
+      'theme',
+      expect.objectContaining({
+        material: expect.objectContaining({ acrylicFilter: 'blur(16px)' }),
+      }),
+      expect.objectContaining({ priority: 100, scope: 'global' }),
+    )
   })
 
   it('controls dynamic effects toggle', () => {
@@ -270,6 +240,6 @@ describe('ThemeStudioEngine State Management & Fabric Bridge', () => {
   it('cleans up tokens on dispose', () => {
     engine.init(mockThemeService)
     engine.dispose()
-    expect(mockThemeService.clearTokens).toHaveBeenCalledWith('fabric-theme-studio')
+    expect(themeTokenCleanup).toHaveBeenCalled()
   })
 })

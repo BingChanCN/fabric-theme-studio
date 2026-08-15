@@ -7,7 +7,7 @@ import styles from '../styles/hud.module.css'
 export function ThemeOverlayHud(props: FabricOverlayProps) {
   const { activeTheme, presets, setActiveTheme } = useThemeStudio()
   const [isExpanded, setIsExpanded] = useState(false)
-  const config = useFabricConfig<{ hudEnabled?: boolean }>('fabric-theme-studio')
+  const config = useFabricConfig(props.config<{ hudEnabled?: boolean }>('dsh-do.fabric-theme-studio.preferences'))
 
   // Obey schema-driven preference: hide HUD if disabled by user config
   if (config.values.hudEnabled === false) {

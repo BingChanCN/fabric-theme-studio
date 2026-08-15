@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react'
-import type { FabricThemeService } from '@dsh-do/fabric/client'
+import type { FabricResourceClient, FabricThemeDefinition, FabricThemeProvider } from '@dsh-do/fabric/client'
+import {
+  customThemeResource, resetThemeResource, setActiveThemeResource,
+  themeStudioStateResource,
+} from '../resources.ts'
 import {
   BUILTIN_PRESETS,
   CATPPUCCIN_LATTE,
@@ -21,7 +25,6 @@ import type {
   ThemeDefinition,
   ThemeMaterial,
   ThemeStudioStatePayload,
-  ThemeTokens,
   ThemeWallpaper,
 } from '../types.ts'
 
@@ -125,206 +128,9 @@ export function evaluateContrastGrade(ratio: number): ContrastGrade {
   return 'Fail'
 }
 
-/** Generate a complete dictionary of tokens for FabricThemeService and CSS variables. */
-export function generateTokenDictionary(
-  tokens: ThemeTokens,
-  material?: ThemeMaterial,
-  isLight = false,
-): Record<string, string> {
-  const acrylic = material?.acrylic ?? false
-  const noiseOpacity = material?.noiseOpacity ?? 0
-  const edgeHighlight = material?.edgeHighlight ?? false
-  const wallpaper = material?.wallpaper
-  const hasWallpaper = Boolean(wallpaper?.enabled && wallpaper.url)
-  const dim = Math.min(0.95, Math.max(0.1, wallpaper?.dim ?? 0.65))
-
-  // When wallpaper is active, the base background token becomes semi-transparent
-  // so the conversation pane reveals the wallpaper while preserving reading contrast.
-  const bgBaseValue = hasWallpaper
-    ? colorToRgba(tokens.background.bgBase, dim)
-    : tokens.background.bgBase
-
-  const successRamp = deriveStateRamp(tokens.status.success, isLight)
-  const warnRamp = deriveStateRamp(tokens.status.warning, isLight)
-  const errorRamp = deriveStateRamp(tokens.status.error, isLight)
-  const infoRamp = deriveStateRamp(tokens.status.info, isLight)
-  const businessSurface = distinctSurface(tokens.brand.brandSurface, tokens.brand.brandPrimary, isLight)
-
-  return {
-    // DSH Core Background & Container Aliases
-    '--dsw-alias-bg-base': bgBaseValue,
-    '--dsw-alias-bg-elevated': tokens.background.bgElevated,
-    '--dsw-alias-bg-subtle': tokens.background.bgSubtle,
-    '--dsw-alias-bg-layer-1': tokens.background.bgElevated,
-    '--dsw-alias-bg-layer-2': tokens.background.bgSubtle,
-    '--dsw-alias-bg-layer-3': tokens.background.bgSurface,
-    '--dsw-alias-bg-overlay': tokens.background.bgElevated,
-    '--dsw-alias-bg-module-platform': tokens.background.bgElevated,
-    '--dsw-alias-bg-multi-select': tokens.background.bgSurface,
-    '--dsw-alias-bg-skeleton': tokens.background.bgSubtle,
-
-    // Material system tokens — consumed by Fabric workbench/modal/popover surfaces
-    '--dsw-material-acrylic-blur': acrylic ? '16px' : '0px',
-    '--dsw-material-acrylic-filter': acrylic ? 'blur(16px)' : 'none',
-    '--dsw-material-acrylic-bg': acrylic
-      ? colorToRgba(tokens.background.bgElevated, isLight ? 0.8 : 0.72)
-      : tokens.background.bgBase,
-    '--dsw-material-noise-opacity': String(noiseOpacity),
-    '--dsw-material-edge-highlight': edgeHighlight
-      ? isLight
-        ? 'inset 0 1px 0 0 rgba(255, 255, 255, 0.7), inset 0 -1px 0 0 rgba(0, 0, 0, 0.06)'
-        : 'inset 0 1px 0 0 rgba(255, 255, 255, 0.16)'
-      : 'none',
-    '--dsw-ambient-intensity': String(material?.effectIntensity ?? 0.75),
-
-    // DSH Specific UI Components
-    '--dsw-specific-sidebar-fill': tokens.background.bgElevated,
-    '--dsw-specific-sidebar-nav-item-active': tokens.brand.brandSurface,
-    '--dsw-specific-sidebar-nav-item-active-accent': tokens.brand.brandPrimary,
-    '--dsw-specific-sidebar-nav-item-hover': tokens.background.bgSurface,
-    '--dsw-specific-input-major': tokens.background.bgSunken,
-    '--dsw-specific-login-input': tokens.background.bgSunken,
-    '--dsw-specific-bubble': tokens.background.bgElevated,
-    '--dsw-specific-bubble-highlight': tokens.brand.brandSurface,
-    '--dsw-specific-selector': tokens.background.bgSurface,
-    '--dsw-specific-tip': tokens.background.bgSurface,
-    '--dsw-specific-menu': tokens.background.bgElevated,
-
-    // Typography / Text Hierarchy
-    '--dsw-alias-label-primary': tokens.text.textPrimary,
-    '--dsw-alias-label-primary-bluish': tokens.text.textPrimary,
-    '--dsw-alias-label-primary-dimmed': tokens.text.textSecondary,
-    '--dsw-alias-label-primary-foreground': tokens.text.textPrimary,
-    '--dsw-alias-label-primary-inverted': tokens.background.bgBase,
-    '--dsw-alias-label-secondary': tokens.text.textSecondary,
-    '--dsw-alias-label-tertiary': tokens.text.textTertiary,
-    '--dsw-alias-label-caption': tokens.text.textDisabled,
-    '--dsw-alias-label-dimmed': tokens.text.textDisabled,
-
-    // Dividers & Borders
-    '--dsw-alias-border-l1': tokens.border.borderSubtle,
-    '--dsw-alias-border-l2': tokens.border.borderBase,
-    '--dsw-alias-border-l3': tokens.border.borderFocus,
-    '--dsw-alias-border-l4': tokens.border.borderFocus,
-    '--dsw-alias-border-inverted': tokens.border.borderSubtle,
-    '--dsw-alias-border-inverted2': tokens.border.borderSubtle,
-    '--dsw-alias-border-l2-darkmode-thin': tokens.border.borderSubtle,
-
-    // Brand & Interactive Controls
-    '--dsw-alias-brand-primary': tokens.brand.brandPrimary,
-    '--dsw-alias-brand-text': tokens.brand.brandText,
-    '--dsw-alias-brand-primary-new-colorprimary-new-color': tokens.brand.brandPrimary,
-    '--dsw-alias-brand-primary-invert': tokens.brand.brandPrimary,
-    '--dsw-alias-button-primary-fill': tokens.brand.brandPrimary,
-    '--dsw-alias-button-primary-hover': tokens.brand.brandHover,
-    '--dsw-alias-button-info-fill': tokens.brand.brandPrimary,
-    '--dsw-alias-button-info-hover': tokens.brand.brandHover,
-    '--dsw-alias-button-elevated-fill': tokens.background.bgElevated,
-    '--dsw-alias-button-floating-fill': tokens.background.bgElevated,
-    '--dsw-alias-button-floating-hover': tokens.background.bgSurface,
-    '--dsw-alias-button-ghost-active-fill': tokens.brand.brandSurface,
-    '--dsw-alias-button-ghost-active-hover': tokens.background.bgSurface,
-    '--dsw-alias-button-ghost-active-border': tokens.border.borderBase,
-    '--dsw-alias-button-tool-bar-fill': tokens.background.bgSurface,
-    '--dsw-alias-interactive-bg-hover': tokens.background.bgSurface,
-    '--dsw-alias-interactive-bg-hover-accent': tokens.brand.brandSurface,
-    '--dsw-alias-interactive-bg-active': tokens.brand.brandSurface,
-    '--dsw-alias-interactive-bg-hover-solid': tokens.background.bgSurface,
-
-    // Status & Semantic States — primary is text, secondary/tertiary are fills.
-    '--dsw-alias-state-business-primary': tokens.brand.brandPrimary,
-    '--dsw-alias-state-business-secondary': businessSurface,
-    '--dsw-alias-state-business-tertiary': businessSurface,
-    '--dsw-alias-state-success-primary': successRamp.primary,
-    '--dsw-alias-state-success-secondary': successRamp.secondary,
-    '--dsw-alias-state-success-tertiary': successRamp.tertiary,
-    '--dsw-alias-state-warn-primary': warnRamp.primary,
-    '--dsw-alias-state-warn-secondary': warnRamp.secondary,
-    '--dsw-alias-state-warn-tertiary': warnRamp.tertiary,
-    '--dsw-alias-state-warn-label': tokens.status.warning,
-    '--dsw-alias-state-error-primary': errorRamp.primary,
-    '--dsw-alias-state-error-secondary': errorRamp.secondary,
-    '--dsw-alias-state-error-tertiary': errorRamp.tertiary,
-    '--dsw-alias-state-info-primary': infoRamp.primary,
-    '--dsw-alias-state-info-secondary': infoRamp.secondary,
-    '--dsw-alias-state-info-tertiary': infoRamp.tertiary,
-
-    // Static DeepSeek & Bluish Palette Overrides
-    '--dsw-static-deepseek-500': tokens.brand.brandPrimary,
-    '--dsw-static-deepseek-450': tokens.brand.brandHover,
-    '--dsw-static-deepseek-400': tokens.brand.brandHover,
-    '--dsw-static-deepseek-300': tokens.brand.brandText,
-    '--dsw-static-deepseek-200': tokens.brand.brandSurface,
-    '--dsw-static-deepseek-100': tokens.brand.brandSurface,
-    '--dsw-static-deepseek-50': tokens.brand.brandSurface,
-
-    '--dsw-static-neutral-bluish-1000': tokens.background.bgSunken,
-    '--dsw-static-neutral-bluish-950': tokens.background.bgBase,
-    '--dsw-static-neutral-bluish-900': tokens.background.bgElevated,
-    '--dsw-static-neutral-bluish-875': tokens.background.bgSubtle,
-    '--dsw-static-neutral-bluish-850': tokens.background.bgSurface,
-    '--dsw-static-neutral-bluish-800': tokens.border.borderBase,
-    '--dsw-static-neutral-bluish-750': tokens.border.borderSubtle,
-    '--dsw-static-neutral-bluish-700': tokens.text.textDisabled,
-    '--dsw-static-neutral-bluish-600': tokens.text.textTertiary,
-    '--dsw-static-neutral-bluish-500': tokens.text.textTertiary,
-    '--dsw-static-neutral-bluish-400': tokens.text.textSecondary,
-    '--dsw-static-neutral-bluish-300': tokens.text.textSecondary,
-    '--dsw-static-neutral-bluish-200': tokens.text.textPrimary,
-    '--dsw-static-neutral-bluish-100': tokens.text.textPrimary,
-    '--dsw-static-neutral-bluish-50': tokens.text.textPrimary,
-    '--dsw-static-neutral-bluish-00': tokens.text.textPrimary,
-
-    // Fabric Theme Studio Scoped Aliases
-    '--dsw-color-bg-base': tokens.background.bgBase,
-    '--dsw-color-bg-elevated': tokens.background.bgElevated,
-    '--dsw-color-bg-subtle': tokens.background.bgSubtle,
-    '--dsw-color-bg-surface': tokens.background.bgSurface,
-    '--dsw-color-bg-sunken': tokens.background.bgSunken,
-    '--dsw-color-text-primary': tokens.text.textPrimary,
-    '--dsw-color-text-secondary': tokens.text.textSecondary,
-    '--dsw-color-text-tertiary': tokens.text.textTertiary,
-    '--dsw-color-text-disabled': tokens.text.textDisabled,
-    '--dsw-color-border-base': tokens.border.borderBase,
-    '--dsw-color-border-subtle': tokens.border.borderSubtle,
-    '--dsw-color-border-focus': tokens.border.borderFocus,
-    '--dsw-color-brand-primary': tokens.brand.brandPrimary,
-    '--dsw-color-brand-hover': tokens.brand.brandHover,
-    '--dsw-color-brand-active': tokens.brand.brandActive,
-    '--dsw-color-brand-surface': tokens.brand.brandSurface,
-    '--dsw-color-brand-text': tokens.brand.brandText,
-    '--dsw-color-accent-primary': tokens.accent.accentPrimary,
-    '--dsw-color-accent-hover': tokens.accent.accentHover,
-    '--dsw-color-accent-surface': tokens.accent.accentSurface,
-    '--dsw-color-status-success': tokens.status.success,
-    '--dsw-color-status-warning': tokens.status.warning,
-    '--dsw-color-status-error': tokens.status.error,
-    '--dsw-color-status-info': tokens.status.info,
-    '--dsw-color-radius-sm': tokens.shape.radiusSm,
-    '--dsw-color-radius-md': tokens.shape.radiusMd,
-    '--dsw-color-radius-lg': tokens.shape.radiusLg,
-    '--dsw-color-shadow-sm': tokens.shape.shadowSm,
-    '--dsw-color-shadow-md': tokens.shape.shadowMd,
-    '--dsw-color-shadow-lg': tokens.shape.shadowLg,
-  }
-}
-
-/** Generate injected CSS text for HTML Style tag. */
-export function generateCssVariables(
-  tokens: ThemeTokens,
-  material?: ThemeMaterial,
-  isLight = false,
-): string {
-  const dict = generateTokenDictionary(tokens, material, isLight)
-  const lines: string[] = [
-    ':root, body, body[data-ds-dark-theme], body[data-ds-light-theme], [data-fabric-theme] {',
-  ]
-
-  for (const [k, v] of Object.entries(dict)) {
-    lines.push(`  ${k}: ${v} !important;`)
-  }
-  lines.push('}')
-
+/** Generate the theme-specific ambient layer stylesheet. */
+function generateAmbientCss(material?: ThemeMaterial): string {
+  const lines: string[] = []
   const wallpaper = material?.wallpaper
   const hasWallpaper = Boolean(wallpaper?.enabled && wallpaper.url)
 
@@ -398,7 +204,7 @@ body[data-fabric-has-wallpaper="true"] [class*="frame"] {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128' viewBox='0 0 128 128'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.7'/%3E%3C/svg%3E");
   background-repeat: repeat;
   mix-blend-mode: overlay;
-  opacity: var(--dsw-material-noise-opacity, 0);
+  opacity: var(--fabric-material-noise-opacity, 0);
   transition: opacity 0.3s ease;
 }
 
@@ -428,9 +234,9 @@ body[data-fabric-ambient="aurora"] [data-fabric-workbench="true"]::before {
   border-radius: 50%;
   pointer-events: none;
   z-index: 0;
-  background: radial-gradient(circle, var(--dsw-alias-brand-primary, #4176e6) 0%, transparent 68%);
+  background: radial-gradient(circle, var(--fabric-accent-primary, #4176e6) 0%, transparent 68%);
   filter: blur(42px);
-  opacity: calc(0.62 * var(--dsw-ambient-intensity, 0.75));
+  opacity: calc(0.62 * var(--fabric-ambient-intensity, 0.75));
   animation: fts-aurora-drift var(--fts-ambient-duration, 24s) ease-in-out infinite alternate;
 }
 
@@ -444,9 +250,9 @@ body[data-fabric-ambient="aurora"] [data-fabric-workbench="true"]::after {
   border-radius: 50%;
   pointer-events: none;
   z-index: 0;
-  background: radial-gradient(circle, var(--dsw-color-accent-primary, #ff77c6) 0%, transparent 68%);
+  background: radial-gradient(circle, var(--fabric-accent-primary, #ff77c6) 0%, transparent 68%);
   filter: blur(48px);
-  opacity: calc(0.5 * var(--dsw-ambient-intensity, 0.75));
+  opacity: calc(0.5 * var(--fabric-ambient-intensity, 0.75));
   animation: fts-aurora-orbit var(--fts-ambient-duration-alt, 30s) ease-in-out infinite alternate-reverse;
 }
 
@@ -471,7 +277,7 @@ body[data-fabric-ambient="cyber-grid"] [data-fabric-workbench="true"]::before {
     linear-gradient(rgba(255, 0, 127, 0.16) 1px, transparent 1px),
     linear-gradient(90deg, rgba(0, 255, 255, 0.14) 1px, transparent 1px);
   background-size: 32px 32px;
-  opacity: var(--dsw-ambient-intensity, 0.85);
+  opacity: var(--fabric-ambient-intensity, 0.85);
 }
 
 body[data-fabric-ambient="cyber-grid"] [data-fabric-workbench="true"]::after {
@@ -483,7 +289,7 @@ body[data-fabric-ambient="cyber-grid"] [data-fabric-workbench="true"]::after {
   background: linear-gradient(180deg, transparent 0%, rgba(0, 255, 255, 0.2) 50%, transparent 100%);
   background-size: 100% 220%;
   animation: fts-scanline var(--fts-scan-duration, 10s) linear infinite;
-  opacity: var(--dsw-ambient-intensity, 0.85);
+  opacity: var(--fabric-ambient-intensity, 0.85);
 }
 
 @keyframes fts-scanline {
@@ -498,11 +304,11 @@ body[data-fabric-ambient="mesh-gradient"] [data-fabric-workbench="true"]::before
   pointer-events: none;
   z-index: 0;
   background:
-    radial-gradient(at 0% 0%, var(--dsw-alias-brand-primary, #cba6f7) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, var(--dsw-color-accent-primary, #f5c2e7) 0px, transparent 50%),
-    radial-gradient(at 50% 100%, var(--dsw-alias-brand-hover, #89b4fa) 0px, transparent 50%);
+    radial-gradient(at 0% 0%, var(--fabric-accent-primary, #cba6f7) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, var(--fabric-accent-primary, #f5c2e7) 0px, transparent 50%),
+    radial-gradient(at 50% 100%, var(--fabric-accent-hover, #89b4fa) 0px, transparent 50%);
   filter: blur(48px);
-  opacity: calc(0.42 * var(--dsw-ambient-intensity, 0.75));
+  opacity: calc(0.42 * var(--fabric-ambient-intensity, 0.75));
   animation: fts-mesh-pulse var(--fts-ambient-duration, 16s) ease-in-out infinite alternate;
 }
 
@@ -517,9 +323,9 @@ body[data-fabric-ambient="spotlight"] [data-fabric-workbench="true"]::before {
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  background: radial-gradient(circle at 50% 24%, var(--dsw-alias-brand-primary, #4176e6) 0%, transparent 58%);
+  background: radial-gradient(circle at 50% 24%, var(--fabric-accent-primary, #4176e6) 0%, transparent 58%);
   filter: blur(52px);
-  opacity: calc(0.4 * var(--dsw-ambient-intensity, 0.75));
+  opacity: calc(0.4 * var(--fabric-ambient-intensity, 0.75));
 }
 
 body[data-fabric-ambient-paused="true"] [data-fabric-workbench="true"]::before,
@@ -538,6 +344,65 @@ body[data-fabric-ambient-paused="true"] [data-fabric-workbench="true"]::after {
   return lines.join('\n')
 }
 
+export function toFabricTheme(theme: ThemeDefinition): FabricThemeDefinition {
+  const isLight = theme.category === 'light'
+  const success = deriveStateRamp(theme.tokens.status.success, isLight)
+  const warning = deriveStateRamp(theme.tokens.status.warning, isLight)
+  const danger = deriveStateRamp(theme.tokens.status.error, isLight)
+  const info = deriveStateRamp(theme.tokens.status.info, isLight)
+  const material = theme.material
+  return {
+    surface: {
+      base: theme.tokens.background.bgBase,
+      raised: theme.tokens.background.bgElevated,
+      sunken: theme.tokens.background.bgSunken,
+      muted: theme.tokens.background.bgSubtle,
+      overlay: theme.tokens.background.bgSurface,
+    },
+    content: {
+      primary: theme.tokens.text.textPrimary,
+      secondary: theme.tokens.text.textSecondary,
+      tertiary: theme.tokens.text.textTertiary,
+      disabled: theme.tokens.text.textDisabled,
+      inverse: theme.tokens.background.bgBase,
+    },
+    border: {
+      subtle: theme.tokens.border.borderSubtle,
+      default: theme.tokens.border.borderBase,
+      strong: theme.tokens.border.borderFocus,
+      focus: theme.tokens.border.borderFocus,
+    },
+    accent: {
+      primary: theme.tokens.brand.brandPrimary,
+      hover: theme.tokens.brand.brandHover,
+      active: theme.tokens.brand.brandActive,
+      surface: distinctSurface(theme.tokens.brand.brandSurface, theme.tokens.brand.brandPrimary, isLight),
+    },
+    state: {
+      info: { foreground: info.primary, surface: info.secondary, border: info.tertiary },
+      success: { foreground: success.primary, surface: success.secondary, border: success.tertiary },
+      warning: { foreground: warning.primary, surface: warning.secondary, border: warning.tertiary },
+      danger: { foreground: danger.primary, surface: danger.secondary, border: danger.tertiary },
+    },
+    interaction: {
+      hover: theme.tokens.background.bgSurface,
+      active: theme.tokens.brand.brandSurface,
+      selected: theme.tokens.brand.brandSurface,
+      focus: theme.tokens.border.borderFocus,
+    },
+    material: {
+      acrylicBackground: material?.acrylic === true
+        ? colorToRgba(theme.tokens.background.bgElevated, isLight ? 0.8 : 0.72)
+        : theme.tokens.background.bgBase,
+      acrylicFilter: material?.acrylic === true ? 'blur(16px)' : 'none',
+      edgeHighlight: material?.edgeHighlight === true
+        ? (isLight ? 'inset 0 1px 0 0 rgba(255, 255, 255, 0.7), inset 0 -1px 0 0 rgba(0, 0, 0, 0.06)' : 'inset 0 1px 0 0 rgba(255, 255, 255, 0.16)')
+        : 'none',
+      shadow: theme.tokens.shape.shadowLg,
+    },
+  }
+}
+
 export type ThemeStudioListener = () => void
 
 /** Client-side Theme Studio Engine. */
@@ -550,24 +415,26 @@ export class ThemeStudioEngine {
   private listeners: Set<ThemeStudioListener> = new Set()
   private initialized = false
   private syncSeq = 0
-  private fabricThemeService: FabricThemeService | undefined
+  private fabricThemeProvider: FabricThemeProvider | undefined
+  private resources: FabricResourceClient | undefined
   private themeTeardown: (() => void) | undefined
+  private themeTokenTeardown: (() => void) | undefined
+  private visibilityTeardown: (() => void) | undefined
 
   public constructor() {
     this.restoreFromStorage()
   }
 
-  public init(themeService?: FabricThemeService): void {
-    if (themeService) {
-      this.fabricThemeService = themeService
-    }
+  public init(themeProvider?: FabricThemeProvider, resources?: FabricResourceClient): void {
+    if (themeProvider !== undefined) this.fabricThemeProvider = themeProvider
+    if (resources !== undefined) this.resources = resources
     if (this.initialized) return
     this.initialized = true
 
     this.applyThemeToDom(this.activeTheme)
 
-    if (this.fabricThemeService) {
-      this.themeTeardown = this.fabricThemeService.onThemeChange(({ dark }) => {
+    if (this.fabricThemeProvider) {
+      this.themeTeardown = this.fabricThemeProvider.onChange(({ dark }) => {
         if (this.autoFollowSystem) {
           const targetId = dark ? NORD_AURORA.id : SOLARIZED_LIGHT.id
           this.setActiveTheme(targetId)
@@ -576,16 +443,18 @@ export class ThemeStudioEngine {
     }
 
     if (typeof document !== 'undefined') {
-      document.addEventListener('visibilitychange', () => {
+      const onVisibilityChange = (): void => {
         if (document.hidden) {
           document.body.setAttribute('data-fabric-ambient-paused', 'true')
         } else {
           document.body.removeAttribute('data-fabric-ambient-paused')
         }
-      })
+      }
+      document.addEventListener('visibilitychange', onVisibilityChange)
+      this.visibilityTeardown = () => document.removeEventListener('visibilitychange', onVisibilityChange)
     }
 
-    void this.syncWithHost()
+    if (this.resources !== undefined) void this.syncWithHost()
   }
 
   public getActiveTheme(): ThemeDefinition {
@@ -626,8 +495,8 @@ export class ThemeStudioEngine {
   public setAutoFollowSystem(enabled: boolean): void {
     this.autoFollowSystem = enabled
     this.persistToStorage()
-    if (enabled && this.fabricThemeService) {
-      const isDark = this.fabricThemeService.isDark()
+    if (enabled && this.fabricThemeProvider) {
+      const isDark = this.fabricThemeProvider.isDark()
       const targetId = isDark ? NORD_AURORA.id : SOLARIZED_LIGHT.id
       this.setActiveTheme(targetId)
     }
@@ -707,12 +576,23 @@ export class ThemeStudioEngine {
       this.themeTeardown()
       this.themeTeardown = undefined
     }
-    if (this.fabricThemeService) {
-      try {
-        this.fabricThemeService.clearTokens('fabric-theme-studio')
-      } catch {
-        // ignore
-      }
+    if (this.themeTokenTeardown !== undefined) {
+      this.themeTokenTeardown()
+      this.themeTokenTeardown = undefined
+    }
+    this.visibilityTeardown?.()
+    this.visibilityTeardown = undefined
+    if (typeof document !== 'undefined') {
+      document.getElementById(STYLE_TAG_ID)?.remove()
+      document.getElementById(WALLPAPER_CONTAINER_ID)?.remove()
+      document.getElementById(NOISE_CONTAINER_ID)?.remove()
+      document.documentElement.removeAttribute('data-fabric-has-wallpaper')
+      document.body.removeAttribute('data-fabric-has-wallpaper')
+      document.body.removeAttribute('data-fabric-theme')
+      document.body.removeAttribute('data-fabric-theme-mode')
+      document.body.removeAttribute('data-fabric-ambient')
+      document.body.removeAttribute('data-fabric-ambient-speed')
+      document.body.removeAttribute('data-fabric-ambient-paused')
     }
     this.initialized = false
   }
@@ -737,32 +617,25 @@ export class ThemeStudioEngine {
   }
 
   private applyThemeToDom(theme: ThemeDefinition): void {
-    const isLight = theme.category === 'light'
-    const dict = generateTokenDictionary(theme.tokens, theme.material, isLight)
 
-    // Primary path: Fabric Theme Bridge (Priority 100, global scope)
-    if (this.fabricThemeService) {
-      try {
-        this.fabricThemeService.setTokens('fabric-theme-studio', dict, {
-          priority: 100,
-          scope: 'global',
-        })
-      } catch (err) {
-        console.warn('fabric-theme-studio: failed to set tokens on FabricThemeService', err)
-      }
+    // Fabric is the single theme runtime. Theme Studio provides semantic values; DSH mapping stays private.
+    if (this.fabricThemeProvider !== undefined) {
+      this.themeTokenTeardown?.()
+      this.themeTokenTeardown = this.fabricThemeProvider.provide('theme', toFabricTheme(theme), {
+        priority: 100,
+        scope: 'global',
+      })
     }
 
-    // Secondary path: Maintain DOM data attributes, fallback style tag and backdrop
+    // Maintain theme state and the theme-specific ambient/wallpaper layers.
     if (typeof document !== 'undefined') {
-      let styleTag = document.getElementById(STYLE_TAG_ID) as HTMLStyleElement | null
-      if (!styleTag) {
-        styleTag = document.createElement('style')
-        styleTag.id = STYLE_TAG_ID
-        styleTag.setAttribute('data-plugin', 'fabric-theme-studio')
+      let style = document.getElementById(STYLE_TAG_ID) as HTMLStyleElement | null
+      if (style === null) {
+        style = document.createElement('style')
+        style.id = STYLE_TAG_ID
+        document.head.appendChild(style)
       }
-      document.head?.appendChild(styleTag)
-      styleTag.textContent = generateCssVariables(theme.tokens, theme.material, isLight)
-
+      style.textContent = generateAmbientCss(theme.material)
       document.body.setAttribute('data-fabric-theme', theme.id)
       document.body.setAttribute('data-fabric-theme-mode', theme.category)
       if (theme.category === 'light') {
@@ -814,7 +687,7 @@ export class ThemeStudioEngine {
         document.body.prepend(noiseEl)
       }
       noiseEl.style.setProperty(
-        '--dsw-material-noise-opacity',
+        '--fabric-material-noise-opacity',
         String(theme.material?.noiseOpacity ?? 0),
       )
     }
@@ -875,84 +748,44 @@ export class ThemeStudioEngine {
   }
 
   private async syncWithHost(): Promise<void> {
-    if (typeof fetch === 'undefined') return
+    if (this.resources === undefined) return
     const currentSeq = this.syncSeq
     try {
-      const res = await fetch('/api/theme-studio/state')
-      if (res.ok) {
-        const json = (await res.json()) as { ok: boolean; data?: ThemeStudioStatePayload }
-        if (json.ok && json.data) {
-          if (this.syncSeq !== currentSeq) {
-            return
-          }
-          if (Array.isArray(json.data.customThemes)) {
-            this.customThemes = [...json.data.customThemes]
-          }
-          if (json.data.activeThemeId && !localStorage.getItem(STORAGE_KEY_ACTIVE)) {
-            const all = this.getAllThemes()
-            const match = all.find(t => t.id === json.data?.activeThemeId)
-            if (match) {
-              this.activeThemeId = match.id
-              this.activeTheme = match
-              this.applyThemeToDom(match)
-            }
-          }
-          this.notify()
+      const state = await this.resources.read<void, ThemeStudioStatePayload>(themeStudioStateResource, undefined)
+      if (this.syncSeq !== currentSeq) return
+      this.customThemes = [...state.customThemes]
+      if (state.activeThemeId && (typeof localStorage === 'undefined' || !localStorage.getItem(STORAGE_KEY_ACTIVE))) {
+        const match = this.getAllThemes().find(theme => theme.id === state.activeThemeId)
+        if (match !== undefined) {
+          this.activeThemeId = match.id
+          this.activeTheme = match
+          this.applyThemeToDom(match)
         }
       }
-    } catch {
-      // ignore network errors
+      this.notify()
+    } catch (error) {
+      console.error('fabric-theme-studio: state resource failed', error)
     }
   }
 
   private async pushActiveToHost(themeId: string): Promise<void> {
-    if (typeof fetch === 'undefined') return
-    try {
-      await fetch('/api/theme-studio/active', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ themeId }),
-      })
-    } catch {
-      // ignore network errors
-    }
+    if (this.resources === undefined) return
+    await this.resources.mutate(setActiveThemeResource, { themeId })
   }
 
   private async pushCustomToHost(theme: ThemeDefinition): Promise<void> {
-    if (typeof fetch === 'undefined') return
-    try {
-      await fetch('/api/theme-studio/custom', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ theme }),
-      })
-    } catch {
-      // ignore network errors
-    }
+    if (this.resources === undefined) return
+    await this.resources.mutate(customThemeResource, { action: 'save', theme } as never)
   }
 
   private async pushDeleteToHost(themeId: string): Promise<void> {
-    if (typeof fetch === 'undefined') return
-    try {
-      await fetch('/api/theme-studio/custom', {
-        method: 'DELETE',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ themeId }),
-      })
-    } catch {
-      // ignore network errors
-    }
+    if (this.resources === undefined) return
+    await this.resources.mutate(customThemeResource, { action: 'delete', themeId } as never)
   }
 
   private async pushResetToHost(): Promise<void> {
-    if (typeof fetch === 'undefined') return
-    try {
-      await fetch('/api/theme-studio/reset', {
-        method: 'POST',
-      })
-    } catch {
-      // ignore network errors
-    }
+    if (this.resources === undefined) return
+    await this.resources.mutate(resetThemeResource, undefined)
   }
 }
 

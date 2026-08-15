@@ -15,13 +15,13 @@
   padding: 8px 16px;
   border-radius: 9999px;
   cursor: pointer;
-  box-shadow: var(--dsw-shadow-md, 0 4px 14px rgba(0, 0, 0, 0.3));
+  box-shadow: var(--fabric-material-shadow, 0 4px 14px rgba(0, 0, 0, 0.3));
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .hudPill:hover {
   transform: translateY(-2px);
-  box-shadow: var(--dsw-shadow-lg, 0 8px 20px rgba(0, 0, 0, 0.4));
+  box-shadow: var(--fabric-material-shadow, 0 8px 20px rgba(0, 0, 0, 0.4));
 }
 
 .pillDot,
@@ -42,12 +42,12 @@
   width: 300px;
   border-width: 1px;
   border-style: solid;
-  border-radius: var(--dsw-radius-md, 10px);
+  border-radius: var(--fabric-radius-md, 10px);
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  box-shadow: var(--dsw-shadow-lg, 0 10px 30px rgba(0, 0, 0, 0.4));
+  box-shadow: var(--fabric-material-shadow, 0 10px 30px rgba(0, 0, 0, 0.4));
 }
 
 .hudHeader {
@@ -109,7 +109,7 @@
   border-width: 1px;
   border-style: solid;
   padding: 7px 10px;
-  border-radius: var(--dsw-radius-sm, 6px);
+  border-radius: var(--fabric-radius-sm, 6px);
   cursor: pointer;
   width: 100%;
   text-align: left;
@@ -141,7 +141,7 @@
 .itemCheck {
   font-size: 13px;
   font-weight: bold;
-  color: var(--dsw-alias-state-success-primary, #22c55e);
+  color: var(--fabric-state-success-foreground, #22c55e);
 }
 
 .hudFooter {
@@ -157,7 +157,7 @@
   font-weight: 500;
   cursor: pointer;
   padding: 4px 8px;
-  border-radius: var(--dsw-radius-sm, 4px);
+  border-radius: var(--fabric-radius-sm, 4px);
   transition: opacity 0.15s ease;
 }
 

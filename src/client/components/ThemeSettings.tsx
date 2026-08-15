@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { FabricSettingsProps } from '@dsh-do/fabric/client'
-import type { JsonValue } from '@dsh-do/fabric/sdk'
+import type { JsonValue } from '@dsh-do/fabric/client'
 import { Badge, Section, useFabricConfig } from '@dsh-do/fabric/ui'
 import type { ThemeDefinition } from '../../types.ts'
 import { convertVSCodeTheme, parseVSCodeThemeJson } from '../../vscode-importer.ts'
@@ -25,7 +25,7 @@ export function ThemeSettings(props: FabricSettingsProps) {
     dynamicEffectsEnabled,
     setDynamicEffectsEnabled,
   } = useThemeStudio()
-  const config = useFabricConfig<ThemeStudioConfigValues>('fabric-theme-studio')
+  const config = useFabricConfig<ThemeStudioConfigValues>(props.config)
 
   // Theme Studio JSON import
   const [importJson, setImportJson] = useState('')
@@ -159,7 +159,7 @@ export function ThemeSettings(props: FabricSettingsProps) {
             <button
               type="button"
               className={styles.btnLink}
-              onClick={() => props.openFabric('theme-studio')}
+              onClick={() => props.open('theme-studio')}
             >
               前往调色盘微调 →
             </button>

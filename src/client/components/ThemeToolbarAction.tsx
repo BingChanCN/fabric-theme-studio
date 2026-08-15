@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import type { FabricToolbarActionProps } from '@dsh-do/fabric/client'
+import type { FabricPageActionProps } from '@dsh-do/fabric/client'
 import { ToolbarButton } from '@dsh-do/fabric/ui'
 import { useThemeStudio } from '../theme-engine.ts'
 
-export function ThemeToolbarAction(props: FabricToolbarActionProps) {
+export function ThemeToolbarAction(props: FabricPageActionProps) {
   const { activeTheme, allThemes, setActiveTheme } = useThemeStudio()
   const [openDropdown, setOpenDropdown] = useState(false)
 

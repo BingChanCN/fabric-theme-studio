@@ -13,13 +13,13 @@
 }
 
 .actionBtnPrimary {
-  background-color: var(--dsw-alias-brand-primary, #4176e6);
+  background-color: var(--fabric-accent-primary, #4176e6);
   color: #ffffff;
   border: none;
   padding: 8px 16px;
   font-size: 13px;
   font-weight: 500;
-  border-radius: var(--dsw-radius-sm, 6px);
+  border-radius: var(--fabric-radius-sm, 6px);
   cursor: pointer;
   transition: opacity 0.15s ease, transform 0.1s ease;
 }
@@ -42,40 +42,40 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  background-color: var(--dsw-alias-bg-layer-1, #181820);
+  background-color: var(--fabric-surface-raised, #181820);
   padding: 4px;
-  border-radius: var(--dsw-radius-md, 8px);
-  border: 1px solid var(--dsw-alias-border-l2, #333340);
+  border-radius: var(--fabric-radius-md, 8px);
+  border: 1px solid var(--fabric-border-default, #333340);
 }
 
 .tabBtn {
   background: transparent;
   border: none;
-  color: var(--dsw-alias-label-secondary, #a0a0b0);
+  color: var(--fabric-content-secondary, #a0a0b0);
   font-size: 13px;
   padding: 6px 14px;
-  border-radius: var(--dsw-radius-sm, 6px);
+  border-radius: var(--fabric-radius-sm, 6px);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .tabBtn:hover {
-  color: var(--dsw-alias-label-primary, #ffffff);
+  color: var(--fabric-content-primary, #ffffff);
 }
 
 .tabBtnActive {
-  background-color: var(--dsw-alias-brand-primary, #4176e6);
+  background-color: var(--fabric-accent-primary, #4176e6);
   color: #ffffff !important;
   font-weight: 500;
 }
 
 .searchInput {
-  background-color: var(--dsw-alias-bg-layer-1, #181820);
-  border: 1px solid var(--dsw-alias-border-l2, #333340);
-  color: var(--dsw-alias-label-primary, #ffffff);
+  background-color: var(--fabric-surface-raised, #181820);
+  border: 1px solid var(--fabric-border-default, #333340);
+  color: var(--fabric-content-primary, #ffffff);
   padding: 8px 14px;
   font-size: 13px;
-  border-radius: var(--dsw-radius-sm, 6px);
+  border-radius: var(--fabric-radius-sm, 6px);
   outline: none;
   min-width: 240px;
   box-sizing: border-box;
@@ -83,8 +83,8 @@
 }
 
 .searchInput:focus {
-  border-color: var(--dsw-alias-brand-primary, #4176e6);
-  box-shadow: 0 0 0 2px var(--dsw-alias-interactive-bg-active, rgba(65, 118, 230, 0.2));
+  border-color: var(--fabric-accent-primary, #4176e6);
+  box-shadow: 0 0 0 2px var(--fabric-interaction-active, rgba(65, 118, 230, 0.2));
 }
 
 .grid,
@@ -99,25 +99,25 @@
 .themeCard {
   border-width: 1px;
   border-style: solid;
-  border-radius: var(--dsw-radius-md, 8px);
+  border-radius: var(--fabric-radius-md, 8px);
   padding: 18px;
   display: flex;
   flex-direction: column;
   gap: 14px;
   transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
   position: relative;
-  box-shadow: var(--dsw-shadow-sm, 0 2px 6px rgba(0, 0, 0, 0.15));
+  box-shadow: var(--fabric-material-shadow, 0 2px 6px rgba(0, 0, 0, 0.15));
 }
 
 .card:hover,
 .themeCard:hover {
   transform: translateY(-2px);
-  box-shadow: var(--dsw-shadow-md, 0 6px 16px rgba(0, 0, 0, 0.25));
+  box-shadow: var(--fabric-material-shadow, 0 6px 16px rgba(0, 0, 0, 0.25));
 }
 
 .cardActive,
 .themeCardActive {
-  box-shadow: 0 0 0 2px var(--dsw-alias-brand-primary, #4176e6);
+  box-shadow: 0 0 0 2px var(--fabric-accent-primary, #4176e6);
 }
 
 .cardHeader {
@@ -170,9 +170,9 @@
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  background-color: var(--dsw-alias-bg-layer-2, rgba(0, 0, 0, 0.25));
-  border-radius: var(--dsw-radius-sm, 6px);
-  border: 1px solid var(--dsw-alias-border-l1, rgba(255, 255, 255, 0.05));
+  background-color: var(--fabric-surface-muted, rgba(0, 0, 0, 0.25));
+  border-radius: var(--fabric-radius-sm, 6px);
+  border: 1px solid var(--fabric-border-subtle, rgba(255, 255, 255, 0.05));
 }
 
 .swatch,
@@ -217,10 +217,10 @@
   gap: 6px;
   font-size: 12px;
   font-weight: 600;
-  color: var(--dsw-alias-state-success-primary, #22c55e);
+  color: var(--fabric-state-success-foreground, #22c55e);
   padding: 4px 8px;
   background-color: rgba(34, 197, 94, 0.12);
-  border-radius: var(--dsw-radius-sm, 4px);
+  border-radius: var(--fabric-radius-sm, 4px);
 }
 
 .btnApply {
@@ -228,9 +228,9 @@
   padding: 7px 16px;
   font-size: 13px;
   font-weight: 500;
-  border-radius: var(--dsw-radius-sm, 6px);
+  border-radius: var(--fabric-radius-sm, 6px);
   cursor: pointer;
-  background-color: var(--dsw-alias-brand-primary, #4176e6);
+  background-color: var(--fabric-accent-primary, #4176e6);
   color: #ffffff;
   transition: opacity 0.15s ease, transform 0.1s ease;
 }
@@ -241,34 +241,34 @@
 }
 
 .btnSecondary {
-  background-color: var(--dsw-alias-bg-layer-3, #2a2a38);
-  color: var(--dsw-alias-label-primary, #ffffff);
-  border: 1px solid var(--dsw-alias-border-l2, #444455);
+  background-color: var(--fabric-surface-overlay, #2a2a38);
+  color: var(--fabric-content-primary, #ffffff);
+  border: 1px solid var(--fabric-border-default, #444455);
   padding: 6px 14px;
   font-size: 12px;
   font-weight: 500;
-  border-radius: var(--dsw-radius-sm, 6px);
+  border-radius: var(--fabric-radius-sm, 6px);
   cursor: pointer;
   transition: background-color 0.15s ease;
 }
 
 .btnSecondary:hover {
-  background-color: var(--dsw-alias-interactive-bg-hover, #333345);
+  background-color: var(--fabric-interaction-hover, #333345);
 }
 
 .btnIconMore {
   padding: 6px 10px;
   font-size: 13px;
-  border-radius: var(--dsw-radius-sm, 6px);
-  border: 1px solid var(--dsw-alias-border-l2, #3a3a48);
-  background-color: var(--dsw-alias-bg-layer-2, #202028);
-  color: var(--dsw-alias-label-secondary, #aaa);
+  border-radius: var(--fabric-radius-sm, 6px);
+  border: 1px solid var(--fabric-border-default, #3a3a48);
+  background-color: var(--fabric-surface-muted, #202028);
+  color: var(--fabric-content-secondary, #aaa);
   cursor: pointer;
   line-height: 1;
   transition: all 0.15s ease;
 }
 
 .btnIconMore:hover {
-  color: var(--dsw-alias-label-primary, #fff);
-  border-color: var(--dsw-alias-brand-primary, #4176e6);
+  color: var(--fabric-content-primary, #fff);
+  border-color: var(--fabric-accent-primary, #4176e6);
 }

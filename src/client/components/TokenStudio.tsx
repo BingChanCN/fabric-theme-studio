@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react'
 import { Badge, Modal, Page, PageHeader, Section, ToolbarButton } from '@dsh-do/fabric/ui'
+import type { FabricPageProps } from '@dsh-do/fabric/client'
 import {
   deriveThemeFromSeed,
   extractColorsFromImageData,
@@ -19,9 +20,7 @@ import type {
   WallpaperFit,
 } from '../../types.ts'
 
-export interface TokenStudioProps {
-  notify: (message: string, options?: { tone?: 'info' | 'success' | 'warning' | 'error' }) => void
-}
+export type TokenStudioProps = FabricPageProps
 
 type HarmonyMode =
   | 'complementary'
@@ -407,7 +406,7 @@ export const TokenStudio: React.FC<TokenStudioProps> = props => {
                 style={{
                   fontFamily: 'monospace',
                   fontSize: '12px',
-                  color: 'var(--dsw-alias-label-primary)',
+                  color: 'var(--fabric-content-primary)',
                 }}
               >
                 {seedColor.toUpperCase()}
@@ -482,7 +481,7 @@ export const TokenStudio: React.FC<TokenStudioProps> = props => {
               <span
                 style={{
                   fontSize: '12px',
-                  color: 'var(--dsw-alias-label-secondary)',
+                  color: 'var(--fabric-content-secondary)',
                 }}
               >
                 自动采样图片关键色块并作为调色种子
@@ -494,7 +493,7 @@ export const TokenStudio: React.FC<TokenStudioProps> = props => {
                 <span
                   style={{
                     fontSize: '12px',
-                    color: 'var(--dsw-alias-label-secondary)',
+                    color: 'var(--fabric-content-secondary)',
                   }}
                 >
                   提取色板:
@@ -755,7 +754,7 @@ export const TokenStudio: React.FC<TokenStudioProps> = props => {
             borderColor: draft.tokens.border.borderBase,
             borderRadius: draft.tokens.shape.radiusMd,
             boxShadow: draft.material?.edgeHighlight
-              ? 'inset 0 1px 0 0 rgba(255, 255, 255, 0.12), var(--dsw-shadow-md)'
+              ? 'inset 0 1px 0 0 rgba(255, 255, 255, 0.12), var(--fabric-material-shadow)'
               : draft.tokens.shape.shadowMd,
           }}
         >
@@ -1142,7 +1141,7 @@ export const TokenStudio: React.FC<TokenStudioProps> = props => {
             onChange={e => setSaveName(e.target.value)}
           />
         </div>
-        <p style={{ margin: 0, fontSize: '12px', color: 'var(--dsw-alias-label-secondary)' }}>
+        <p style={{ margin: 0, fontSize: '12px', color: 'var(--fabric-content-secondary)' }}>
           保存后将持久化存储在 DSH 宿主并同步注册到 Theme Studio 预设库中。
         </p>
       </Modal>
