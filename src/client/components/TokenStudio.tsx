@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Badge, Modal, Page, PageHeader, Section, ToolbarButton } from '@dsh-do/fabric/ui'
 import type { FabricPageProps } from '@dsh-do/fabric/client'
 import {
@@ -31,11 +31,17 @@ type HarmonyMode =
 
 /** Token Studio Component: Interactive theme designer and real-time customizer. */
 export const TokenStudio: React.FC<TokenStudioProps> = props => {
-  const { activeTheme, saveCustomTheme, applyCustomThemeDraft } = useThemeStudio()
+  const { activeTheme, activeThemeId, saveCustomTheme, applyCustomThemeDraft, uploadWallpaper } = useThemeStudio()
 
   const [draft, setDraft] = useState<ThemeDefinition>(() =>
     JSON.parse(JSON.stringify(activeTheme)) as ThemeDefinition,
   )
+
+  useEffect(() => {
+    setDraft(JSON.parse(JSON.stringify(activeTheme)) as ThemeDefinition)
+    // Only resync when the selected theme identity changes. Draft edits keep the same id.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- activeTheme object updates on every draft keystroke
+  }, [activeThemeId])
   const [showSaveModal, setShowSaveModal] = useState(false)
   const [saveName, setSaveName] = useState('')
 
@@ -200,22 +206,10 @@ export const TokenStudio: React.FC<TokenStudioProps> = props => {
       if (typeof dataUrl !== 'string') return
 
       let targetUrl = dataUrl
-
-      // Try uploading to host server for persistent local static serving
       try {
-        const res = await fetch('/api/theme-studio/wallpaper', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ dataUrl, themeId: draft.id }),
-        })
-        if (res.ok) {
-          const json = (await res.json()) as { ok: boolean; data?: { url: string } }
-          if (json.ok && json.data?.url) {
-            targetUrl = json.data.url
-          }
-        }
+        targetUrl = await uploadWallpaper(dataUrl, draft.id)
       } catch {
-        // Fallback to data URL
+        // Keep the data URL so the wallpaper still paints if the host upload fails.
       }
 
       // Also sample colors for instant theme extraction

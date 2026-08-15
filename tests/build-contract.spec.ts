@@ -12,7 +12,7 @@ describe('Build Contract & Distribution Artifacts', () => {
   it('verifies package.json configuration', () => {
     const pkg = JSON.parse(readFileSync(packageJsonPath, 'utf-8'))
     expect(pkg.name).toBe('@dsh-do/fabric-theme-studio')
-    expect(pkg.version).toBe('0.7.0')
+    expect(pkg.version).toBe('0.7.1')
     expect(pkg.main).toBe('lib/index.js')
     expect(pkg.exports['.']).toBe('./lib/index.js')
     expect(pkg.exports['./client']).toBe('./lib/client.js')

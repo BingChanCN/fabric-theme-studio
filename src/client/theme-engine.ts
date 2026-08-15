@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { FabricResourceClient, FabricThemeDefinition, FabricThemeProvider } from '@dsh-do/fabric/client'
 import {
   customThemeResource, resetThemeResource, setActiveThemeResource,
-  themeStudioStateResource,
+  themeStudioStateResource, wallpaperResource,
 } from '../resources.ts'
 import {
   BUILTIN_PRESETS,
@@ -164,22 +164,10 @@ function generateAmbientCss(material?: ThemeMaterial): string {
   display: block !important;
 }
 
-html[data-fabric-has-wallpaper="true"],
-body[data-fabric-has-wallpaper="true"] {
-  background: transparent !important;
-  background-color: transparent !important;
-}
-
 html[data-fabric-has-wallpaper="true"] #root,
 body[data-fabric-has-wallpaper="true"] #root {
   position: relative !important;
   z-index: 1 !important;
-  background: transparent !important;
-}
-
-/* Prevent AppFrame from double-stacking the bg-base opacity */
-body[data-fabric-has-wallpaper="true"] [class*="frame"] {
-  background: transparent !important;
 }
 `)
   } else {
@@ -351,9 +339,13 @@ export function toFabricTheme(theme: ThemeDefinition): FabricThemeDefinition {
   const danger = deriveStateRamp(theme.tokens.status.error, isLight)
   const info = deriveStateRamp(theme.tokens.status.info, isLight)
   const material = theme.material
+  const wallpaper = material?.wallpaper
+  const baseFill = wallpaper?.enabled === true && wallpaper.url
+    ? colorToRgba(theme.tokens.background.bgBase, Math.min(1, Math.max(0, wallpaper.dim ?? 0.55)))
+    : theme.tokens.background.bgBase
   return {
     surface: {
-      base: theme.tokens.background.bgBase,
+      base: baseFill,
       raised: theme.tokens.background.bgElevated,
       sunken: theme.tokens.background.bgSunken,
       muted: theme.tokens.background.bgSubtle,
@@ -529,6 +521,12 @@ export class ThemeStudioEngine {
     this.activeTheme = theme
     this.applyThemeToDom(theme)
     this.notify()
+  }
+
+  public async uploadWallpaper(dataUrl: string, themeId: string): Promise<string> {
+    if (this.resources === undefined) return dataUrl
+    const uploaded = await this.resources.mutate(wallpaperResource, { dataUrl, themeId })
+    return uploaded.url
   }
 
   public saveCustomTheme(theme: ThemeDefinition): void {
@@ -804,6 +802,7 @@ export function useThemeStudio(): {
   dynamicEffectsEnabled: boolean
   setActiveTheme: (themeId: string) => boolean
   applyCustomThemeDraft: (theme: ThemeDefinition) => void
+  uploadWallpaper: (dataUrl: string, themeId: string) => Promise<string>
   saveCustomTheme: (theme: ThemeDefinition) => void
   deleteCustomTheme: (themeId: string) => boolean
   setAutoFollowSystem: (enabled: boolean) => void
@@ -829,6 +828,7 @@ export function useThemeStudio(): {
     dynamicEffectsEnabled: themeStudioEngine.isDynamicEffectsEnabled(),
     setActiveTheme: id => themeStudioEngine.setActiveTheme(id),
     applyCustomThemeDraft: t => themeStudioEngine.applyCustomThemeDraft(t),
+    uploadWallpaper: (dataUrl, themeId) => themeStudioEngine.uploadWallpaper(dataUrl, themeId),
     saveCustomTheme: t => themeStudioEngine.saveCustomTheme(t),
     deleteCustomTheme: id => themeStudioEngine.deleteCustomTheme(id),
     setAutoFollowSystem: e => themeStudioEngine.setAutoFollowSystem(e),

@@ -20,7 +20,7 @@ describe('Theme Wallpaper & Dimming Engine', () => {
       material: {
         wallpaper: {
           enabled: true,
-          url: '/api/theme-studio/wallpaper/wp-123.jpg',
+          url: '/fabric/asset/fabric-theme-studio/wallpaper/wp-123.jpg',
           dim: 0.5,
         },
       },
@@ -32,6 +32,6 @@ describe('Theme Wallpaper & Dimming Engine', () => {
     const active = store.getActiveTheme()
     expect(active.id).toBe('custom-wp-1')
     expect(active.material?.wallpaper?.enabled).toBe(true)
-    expect(active.material?.wallpaper?.url).toBe('/api/theme-studio/wallpaper/wp-123.jpg')
+    expect(active.material?.wallpaper?.url).toBe('/fabric/asset/fabric-theme-studio/wallpaper/wp-123.jpg')
   })
 })

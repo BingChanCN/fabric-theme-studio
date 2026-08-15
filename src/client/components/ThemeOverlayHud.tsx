@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import type { FabricOverlayProps } from '@dsh-do/fabric/client'
 import { Badge, useFabricConfig } from '@dsh-do/fabric/ui'
+import { THEME_CONFIG_ID } from '../config-id.ts'
 import { calculateContrastRatio, evaluateContrastGrade, useThemeStudio } from '../theme-engine.ts'
 import styles from '../styles/hud.module.css'
 
 export function ThemeOverlayHud(props: FabricOverlayProps) {
   const { activeTheme, presets, setActiveTheme } = useThemeStudio()
   const [isExpanded, setIsExpanded] = useState(false)
-  const config = useFabricConfig(props.config<{ hudEnabled?: boolean }>('dsh-do.fabric-theme-studio.preferences'))
+  const config = useFabricConfig(props.config<{ hudEnabled?: boolean }>(THEME_CONFIG_ID))
 
   // Obey schema-driven preference: hide HUD if disabled by user config
   if (config.values.hudEnabled === false) {

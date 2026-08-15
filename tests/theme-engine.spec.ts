@@ -78,6 +78,17 @@ describe('State ramps and surface pairing', () => {
     )
   })
 
+  it('dims surface.base when a wallpaper is active so AppFrame can show it', () => {
+    const themed = toFabricTheme({
+      ...DEEPSEEK_CLASSIC,
+      material: {
+        wallpaper: { enabled: true, url: 'data:image/png;base64,xx', dim: 0.4 },
+      },
+    })
+    expect(themed.surface.base).toBe(colorToRgba(DEEPSEEK_CLASSIC.tokens.background.bgBase, 0.4))
+    expect(themed.surface.raised).toBe(DEEPSEEK_CLASSIC.tokens.background.bgElevated)
+  })
+
   it('maps theme editor values to distinct Fabric semantic roles', () => {
     const theme = toFabricTheme(DEEPSEEK_CLASSIC)
     expect(theme.surface.base).toBe(DEEPSEEK_CLASSIC.tokens.background.bgBase)
@@ -130,6 +141,20 @@ describe('ThemeStudioEngine State Management & Fabric Bridge', () => {
       }),
       expect.objectContaining({ priority: 100, scope: 'global' }),
     )
+  })
+
+  it('keeps the selected theme id when applying a wallpaper draft', () => {
+    engine.setActiveTheme(NORD_AURORA.id)
+    const drafted: ThemeDefinition = {
+      ...NORD_AURORA,
+      material: {
+        wallpaper: { enabled: true, url: 'data:image/png;base64,xx', dim: 0.5 },
+      },
+    }
+    engine.applyCustomThemeDraft(drafted)
+    expect(engine.getActiveThemeId()).toBe(NORD_AURORA.id)
+    expect(engine.getActiveTheme().material?.wallpaper?.url).toBe('data:image/png;base64,xx')
+    expect(engine.getActiveTheme().name).toBe(NORD_AURORA.name)
   })
 
   it('notifies subscribers on theme change', () => {
