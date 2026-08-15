@@ -5,7 +5,7 @@ Fabric 官方 Theme Provider。编辑器数据变成 `FabricThemeDefinition`，�
 ## 功能
 
 - 主题工坊、调色盘、全景展台
-- 页面 action 快速切换、overlay HUD
+- 页面 action 快速切换、`ctx.hud.define` 常驻 HUD、动态页面 badge
 - `ctx.config.define` 偏好设置
 - Host/Client 走 typed Resource（state / active / custom / wallpaper）
 
@@ -23,6 +23,6 @@ dsh plugin --profile web add @dsh-do/fabric-theme-studio
 # 或本地 tgz
 cd D:/dsh-dev/fabric && pnpm pack --pack-destination .pack-probe
 cd D:/dsh-dev/fabric-theme-studio && pnpm pack --pack-destination .pack-probe
-dsh plugin --profile web add "D:/dsh-dev/fabric/.pack-probe/dsh-do-fabric-0.6.0.tgz"
-dsh plugin --profile web add "D:/dsh-dev/fabric-theme-studio/.pack-probe/dsh-do-fabric-theme-studio-0.7.3.tgz"
+dsh plugin --profile web add "D:/dsh-dev/fabric/.pack-probe/dsh-do-fabric-0.7.0.tgz"
+dsh plugin --profile web add "D:/dsh-dev/fabric-theme-studio/.pack-probe/dsh-do-fabric-theme-studio-0.8.0.tgz"
 ```

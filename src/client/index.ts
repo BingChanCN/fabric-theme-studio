@@ -9,7 +9,7 @@ import {
 import type { ThemeDefinition } from '../types.ts'
 import { ComponentShowcase } from './components/ComponentShowcase.tsx'
 import { ThemeGallery } from './components/ThemeGallery.tsx'
-import { ThemeOverlayHud } from './components/ThemeOverlayHud.tsx'
+import { ThemeHud } from './components/ThemeHud.tsx'
 import { ThemeSettings } from './components/ThemeSettings.tsx'
 import { ThemeToolbarAction } from './components/ThemeToolbarAction.tsx'
 import { TokenStudio } from './components/TokenStudio.tsx'
@@ -103,12 +103,15 @@ const themeDefinition = defineClientPlugin({
     ctx.capabilities.provide({ id: 'theme-studio-api', version: '1', implementation: capabilityApi })
 
     const gallery: FabricPageDefinition = {
-      id: 'theme-gallery', order: 0, label: '主题工坊', icon: createElement(PaletteIcon, { size: 16 }), badge: '11', keepAlive: true,
+      id: 'theme-gallery', order: 0, label: '主题工坊', icon: createElement(PaletteIcon, { size: 16 }), keepAlive: true,
       view: ThemeGallery,
-      actions: [{ id: 'quick-switch', order: 0, component: ThemeToolbarAction }],
+      actions: [{ id: 'quick-switch', order: 0, label: '快速切换主题', render: ThemeToolbarAction }],
       config: [preferences],
     }
-    ctx.pages.define(gallery)
+    const galleryPage = ctx.pages.define(gallery)
+    const syncGalleryBadge = () => { galleryPage.setBadge(themeEngine.getAllThemes().length) }
+    syncGalleryBadge()
+    ctx.lifecycle.onDispose(themeEngine.subscribe(syncGalleryBadge))
     ctx.pages.define({
       id: 'theme-studio', order: 1, label: '调色盘', icon: createElement(SlidersIcon, { size: 16 }), keepAlive: true,
       view: TokenStudio,
@@ -119,7 +122,7 @@ const themeDefinition = defineClientPlugin({
       view: ComponentShowcase,
       config: [preferences],
     })
-    ctx.overlays.define({ id: 'theme-overlay-hud', component: ThemeOverlayHud, config: [preferences] })
+    ctx.hud.define({ id: 'theme-hud', component: ThemeHud, config: [preferences] })
 
     const commands = [
       { id: 'open-gallery', title: '主题工坊: 打开主题预设画廊', description: '浏览并应用主题预设', shortcut: 'Mod+Shift+T', order: 10, run: () => ctx.pages.open('theme-gallery') },

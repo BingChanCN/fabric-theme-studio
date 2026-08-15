@@ -1,6 +1,6 @@
 {
   "name": "@dsh-do/fabric-theme-studio",
-  "version": "0.7.3",
+  "version": "0.8.0",
   "publishConfig": {
     "access": "public"
   },
@@ -21,7 +21,7 @@
       "platform": "web"
     },
     "dependencies": {
-      "@dsh-do/fabric": "^0.5.0"
+      "@dsh-do/fabric": "^0.7.0"
     }
   },
   "scripts": {
@@ -40,7 +40,7 @@
     "@deepseek-ai/dsh-client-ui-primitives": "^0.1.0-rc.6",
     "@deepseek-ai/dsh-client-ui-slots": "^0.1.0-rc.6",
     "@deepseek-ai/dsh-host-webserver": "^0.1.0-rc.6",
-    "@dsh-do/fabric": "^0.5.0 || ^0.6.0",
+    "@dsh-do/fabric": "^0.7.0",
     "react": "^18.2.0"
   },
   "devDependencies": {

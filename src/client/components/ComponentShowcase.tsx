@@ -75,7 +75,7 @@ export function ComponentShowcase(props: FabricPageProps) {
   const { activeTheme, allThemes, setActiveTheme } = useThemeStudio()
   const config = useFabricConfig(props.config(THEME_CONFIG_ID))
   const [asyncMode, setAsyncMode] = useState<'loaded' | 'loading' | 'empty' | 'error'>('loaded')
-  const [inputText, setInputText] = useState('DeepSeek Harness + Fabric v0.6')
+  const [inputText, setInputText] = useState('DeepSeek Harness + Fabric v0.7')
   const [toggleChecked, setToggleChecked] = useState(true)
   const [sliderVal, setSliderVal] = useState(72)
 
@@ -88,7 +88,7 @@ export function ComponentShowcase(props: FabricPageProps) {
     notes: 'Fabric Phase 3 Commands & IMC Demo',
   })
 
-  // Fabric v0.5 & v0.6 Interaction Demos
+  // Fabric v0.7 interaction demos
   const [demoModalOpen, setDemoModalOpen] = useState(false)
   const [demoModalSize, setDemoModalSize] = useState<'sm' | 'md' | 'lg'>('md')
   const [popoverPlacement, setPopoverPlacement] = useState<'top' | 'bottom' | 'left' | 'right'>('bottom')

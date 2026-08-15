@@ -20,6 +20,6 @@ jobs:
       # The local workspace link is for out-of-band development; CI builds
       # against the published Fabric from npm.
       - run: |
-          sed -i 's|"@dsh-do/fabric": "link:../fabric"|"@dsh-do/fabric": "^0.6.0"|' package.json
+          sed -i 's|"@dsh-do/fabric": "link:../fabric"|"@dsh-do/fabric": "^0.7.0"|' package.json
       - run: pnpm install --no-frozen-lockfile
       - run: pnpm verify

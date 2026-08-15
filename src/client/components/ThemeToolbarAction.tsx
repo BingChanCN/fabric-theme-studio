@@ -1,12 +1,9 @@
-import { useState } from 'react'
 import type { FabricPageActionProps } from '@dsh-do/fabric/client'
 import { ToolbarButton } from '@dsh-do/fabric/ui'
 import { useThemeStudio } from '../theme-engine.ts'
 
 export function ThemeToolbarAction(props: FabricPageActionProps) {
   const { activeTheme, allThemes, setActiveTheme } = useThemeStudio()
-  const [openDropdown, setOpenDropdown] = useState(false)
-
   const handleCycleTheme = () => {
     const currentIndex = allThemes.findIndex(t => t.id === activeTheme.id)
     const nextIndex = (currentIndex + 1) % allThemes.length

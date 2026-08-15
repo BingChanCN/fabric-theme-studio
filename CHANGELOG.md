@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.0
+
+- 迁移到 Fabric 0.7：`overlays.define` 改为窄的 `hud.define`，快速切换 action 改用自定义 `render`。
+- 主题工坊 badge 改为 `page.setBadge()`，会随内置与自定义主题数量更新。
+- peer dependency 收紧为 `@dsh-do/fabric@^0.7.0`。
+
 ## 0.7.3
 
 - **发布闸门**：`prepack` / `prepublishOnly` 强制跑 `pnpm verify`（test + build），杜绝 stale lib 打包。

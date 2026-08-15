@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import type { FabricOverlayProps } from '@dsh-do/fabric/client'
+import type { FabricHudProps } from '@dsh-do/fabric/client'
 import { Badge, useFabricConfig } from '@dsh-do/fabric/ui'
 import { THEME_CONFIG_ID } from '../config-id.ts'
 import { calculateContrastRatio, evaluateContrastGrade, useThemeStudio } from '../theme-engine.ts'
 import styles from '../styles/hud.module.css'
 
-export function ThemeOverlayHud(props: FabricOverlayProps) {
+export function ThemeHud(props: FabricHudProps) {
   const { activeTheme, presets, setActiveTheme } = useThemeStudio()
   const [isExpanded, setIsExpanded] = useState(false)
   const config = useFabricConfig(props.config<{ hudEnabled?: boolean }>(THEME_CONFIG_ID))
@@ -28,7 +28,7 @@ export function ThemeOverlayHud(props: FabricOverlayProps) {
 
   const handleOpenWorkbench = () => {
     setIsExpanded(false)
-    props.openFabric('theme-gallery')
+    props.open('theme-gallery')
   }
 
   return (
