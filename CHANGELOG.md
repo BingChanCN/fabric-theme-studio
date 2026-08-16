@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.0
+
+- 迁移为 Fabric 1.0 Runtime Package，不再进入 DSH profile bundle；安装、升级、停用和回退无需重启 DSH。
+- Host 状态迁入 profile-local typed Document，壁纸迁入 Fabric Blob store。
+- 新增 0.x localStorage 与旧壁纸目录的一次性保守迁移，不覆盖已有 Runtime 数据且保留旧文件。
+- 发布物改为单文件 Host/Client 与纯 `./contracts`，`fabric verify/pack` 对工作目录和真实 tgz 共用 Core validator。
+
 ## 0.8.0
 
 - 迁移到 Fabric 0.7：`overlays.define` 改为窄的 `hud.define`，快速切换 action 改用自定义 `render`。

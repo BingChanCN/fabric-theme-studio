@@ -1,6 +1,7 @@
 import { defineCodec, defineResource, voidCodec } from '@dsh-do/fabric/sdk'
 import type {
-  DeleteCustomThemeRequest, SaveCustomThemeRequest, SetActiveThemeRequest,
+  DeleteCustomThemeRequest, LegacyThemeStudioMigrationRequest, LegacyThemeStudioMigrationResponse,
+  SaveCustomThemeRequest, SetActiveThemeRequest,
   ThemeDefinition, ThemeStudioStatePayload, UploadWallpaperRequest, UploadWallpaperResponse,
 } from './types.ts'
 
@@ -87,16 +88,35 @@ const wallpaperResponseCodec = defineCodec<UploadWallpaperResponse>(value => {
   return value as UploadWallpaperResponse
 })
 
+const legacyMigrationRequestCodec = defineCodec<LegacyThemeStudioMigrationRequest>(value => {
+  const item = record(value, 'legacy theme migration request')
+  if (item.activeThemeId !== undefined && typeof item.activeThemeId !== 'string') throw new Error('legacy activeThemeId must be a string')
+  if (!Array.isArray(item.customThemes)) throw new Error('legacy customThemes must be an array')
+  for (const theme of item.customThemes) themeCodec.parse(theme)
+  return {
+    ...(typeof item.activeThemeId === 'string' ? { activeThemeId: item.activeThemeId } : {}),
+    customThemes: item.customThemes as ThemeDefinition[],
+  }
+})
+
+const legacyMigrationResponseCodec = defineCodec<LegacyThemeStudioMigrationResponse>(value => {
+  const item = record(value, 'legacy theme migration response')
+  if (typeof item.migrated !== 'boolean' || typeof item.wallpapersMigrated !== 'number') {
+    throw new Error('invalid legacy theme migration response')
+  }
+  return value as LegacyThemeStudioMigrationResponse
+})
+
 export const themeStudioStateResource = defineResource<void, ThemeStudioStatePayload>({
-  id: 'state', version: '1', scope: 'profile', request: voidCodec, response: stateCodec,
+  owner: '@dsh-do/fabric-theme-studio', id: 'state', version: '1', scope: 'profile', request: voidCodec, response: stateCodec,
 })
 
 export const activeThemeResource = defineResource<void, { activeThemeId: string; activeTheme: ThemeDefinition }>({
-  id: 'active', version: '1', scope: 'profile', request: voidCodec, response: activeResponseCodec,
+  owner: '@dsh-do/fabric-theme-studio', id: 'active', version: '1', scope: 'profile', request: voidCodec, response: activeResponseCodec,
 })
 
 export const setActiveThemeResource = defineResource<SetActiveThemeRequest, { activeThemeId: string; activeTheme: ThemeDefinition }>({
-  id: 'active-set', version: '1', scope: 'profile', request: activeRequestCodec, response: activeResponseCodec,
+  owner: '@dsh-do/fabric-theme-studio', id: 'active-set', version: '1', scope: 'profile', request: activeRequestCodec, response: activeResponseCodec,
 })
 
 export const customThemeResource = defineResource<CustomThemeResourceRequest, {
@@ -104,13 +124,13 @@ export const customThemeResource = defineResource<CustomThemeResourceRequest, {
   deleted?: boolean
   customThemes: readonly ThemeDefinition[]
   activeThemeId: string
-}>({ id: 'custom', version: '1', scope: 'profile', request: customRequestCodec, response: customResponseCodec })
+}>({ owner: '@dsh-do/fabric-theme-studio', id: 'custom', version: '1', scope: 'profile', request: customRequestCodec, response: customResponseCodec })
 
 export const resetThemeResource = defineResource<void, {
   reset: boolean
   activeThemeId: string
   activeTheme: ThemeDefinition
-}>({ id: 'reset', version: '1', scope: 'profile', request: voidCodec, response: defineCodec(value => {
+}>({ owner: '@dsh-do/fabric-theme-studio', id: 'reset', version: '1', scope: 'profile', request: voidCodec, response: defineCodec(value => {
   const item = record(value, 'reset response')
   if (item.reset !== true || typeof item.activeThemeId !== 'string') throw new Error('invalid reset response')
   themeCodec.parse(item.activeTheme)
@@ -118,5 +138,10 @@ export const resetThemeResource = defineResource<void, {
 }) })
 
 export const wallpaperResource = defineResource<UploadWallpaperRequest, UploadWallpaperResponse>({
-  id: 'wallpaper', version: '1', scope: 'profile', request: wallpaperRequestCodec, response: wallpaperResponseCodec,
+  owner: '@dsh-do/fabric-theme-studio', id: 'wallpaper', version: '1', scope: 'profile', request: wallpaperRequestCodec, response: wallpaperResponseCodec,
+})
+
+export const legacyThemeStudioMigrationResource = defineResource<LegacyThemeStudioMigrationRequest, LegacyThemeStudioMigrationResponse>({
+  owner: '@dsh-do/fabric-theme-studio', id: 'migrate-static-data', version: '1', scope: 'profile',
+  request: legacyMigrationRequestCodec, response: legacyMigrationResponseCodec,
 })

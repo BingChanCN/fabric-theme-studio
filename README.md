@@ -1,28 +1,45 @@
 # Fabric Theme Studio
 
-Fabric 官方 Theme Provider。编辑器数据变成 `FabricThemeDefinition`，由 Fabric runtime 注入 `--fabric-*`，DSH `--dsw-*` 映射留在 Fabric bridge 内部。
+Fabric 1.0 Runtime Theme Provider。编辑器数据是 `FabricThemeDefinition`，由 Fabric 浏览器单例注入 `--fabric-*`；DSH token 映射保留在 Fabric bridge 内部。
 
 ## 功能
 
 - 主题工坊、调色盘、全景展台
-- 页面 action 快速切换、`ctx.hud.define` 常驻 HUD、动态页面 badge
-- `ctx.config.define` 偏好设置
-- Host/Client 走 typed Resource（state / active / custom / wallpaper）
+- 页面 action、HUD 与动态 badge
+- Config 偏好设置
+- Host 状态存入 profile-local typed Document
+- 壁纸存入 Fabric Blob store，Client 只持 opaque Blob URL
+- 0.x 旧 localStorage/壁纸目录的一次性保守迁移；已有 1.0 数据不覆盖，旧文件不自动删除
 
 ## 安装
 
-`dsh plugin add` 不会自动安装 peer 依赖（`dsh.dependencies` 字段当前版本的 DSH 也不会消费）。必须**先装 fabric**，再装本包，否则运行时报 `require("@dsh-do/fabric") missed the module table`：
+先把 Fabric Core 作为当前 Profile 唯一的静态基础插件安装并重启一次：
 
-```bash
-# 从 npm 安装（推荐）
+```sh
 dsh plugin --profile web add @dsh-do/fabric
-dsh plugin --profile web add @dsh-do/fabric-theme-studio
 ```
 
-```bash
-# 或本地 tgz
-cd D:/dsh-dev/fabric && pnpm pack --pack-destination .pack-probe
-cd D:/dsh-dev/fabric-theme-studio && pnpm pack --pack-destination .pack-probe
-dsh plugin --profile web add "D:/dsh-dev/fabric/.pack-probe/dsh-do-fabric-0.7.0.tgz"
-dsh plugin --profile web add "D:/dsh-dev/fabric-theme-studio/.pack-probe/dsh-do-fabric-theme-studio-0.8.0.tgz"
+随后在 Fabric Mods 或 dsh-do 插件市场安装：
+
+```text
+@dsh-do/fabric-theme-studio
 ```
+
+Theme Studio 是 Runtime Package，不再执行 `dsh plugin add`，安装、升级、停用、回退和删除均无需重启 DSH。
+
+本地开发：
+
+```sh
+pnpm install
+fabric build
+fabric verify
+fabric dev --profile web
+```
+
+发布闸门：
+
+```sh
+fabric pack
+```
+
+该命令验证工作目录与最终 npm tgz；失败产物不会保留。

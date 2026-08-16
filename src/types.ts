@@ -175,6 +175,16 @@ export interface UploadWallpaperResponse {
   filename: string
 }
 
+export interface LegacyThemeStudioMigrationRequest {
+  activeThemeId?: string
+  customThemes: readonly ThemeDefinition[]
+}
+
+export interface LegacyThemeStudioMigrationResponse {
+  migrated: boolean
+  wallpapersMigrated: number
+}
+
 export interface ApiResponse<T = unknown> {
   ok: boolean
   data?: T

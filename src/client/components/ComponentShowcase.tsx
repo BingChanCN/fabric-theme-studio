@@ -143,7 +143,7 @@ export function ComponentShowcase(props: FabricPageProps) {
     <Page className={styles.showcasePage ?? ''}>
       <PageHeader
         title="全景展台 (Component Showcase)"
-        description="全量呈现 Fabric 0.6 命令系统、快捷键、跨插件 IMC 能力与浮层设计基座"
+        description="全量呈现 Fabric 1.0 命令系统、快捷键、跨插件 Capability 与浮层设计基座"
         actions={
           <div className={styles.headerActions}>
             <ToolbarButton

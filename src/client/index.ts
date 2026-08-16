@@ -6,7 +6,7 @@ import {
   type FabricPageDefinition,
   type JsonValue,
 } from '@dsh-do/fabric/client'
-import type { ThemeDefinition } from '../types.ts'
+import { themeStudioCapability, type ThemeStudioCapabilityApi } from '../contracts.ts'
 import { ComponentShowcase } from './components/ComponentShowcase.tsx'
 import { ThemeGallery } from './components/ThemeGallery.tsx'
 import { ThemeHud } from './components/ThemeHud.tsx'
@@ -19,17 +19,8 @@ import { THEME_CONFIG_ID } from './config-id.ts'
 
 export { THEME_CONFIG_ID }
 
-export interface ThemeStudioCapabilityApi {
-  getActiveTheme(): ThemeDefinition
-  setActiveTheme(themeId: string): void
-  getPresets(): readonly ThemeDefinition[]
-  getCustomThemes(): readonly ThemeDefinition[]
-  getAllThemes(): readonly ThemeDefinition[]
-  cycleNextTheme(): ThemeDefinition
-  saveCustomTheme(theme: ThemeDefinition): void
-  deleteCustomTheme(themeId: string): boolean
-  resetAll(): void
-}
+export type { ThemeStudioCapabilityApi } from '../contracts.ts'
+export { themeStudioCapability } from '../contracts.ts'
 
 interface ThemeStudioConfigValues {
   readonly [key: string]: JsonValue
@@ -100,7 +91,7 @@ const themeDefinition = defineClientPlugin({
       deleteCustomTheme: id => themeEngine.deleteCustomTheme(id),
       resetAll: () => { themeEngine.resetAll() },
     }
-    ctx.capabilities.provide({ id: 'theme-studio-api', version: '1', implementation: capabilityApi })
+    ctx.capabilities.provide(themeStudioCapability, capabilityApi)
 
     const gallery: FabricPageDefinition = {
       id: 'theme-gallery', order: 0, label: '主题工坊', icon: createElement(PaletteIcon, { size: 16 }), keepAlive: true,

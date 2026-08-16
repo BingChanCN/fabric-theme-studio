@@ -2,66 +2,61 @@ import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-describe('Build Contract & Distribution Artifacts', () => {
+describe('Runtime Package distribution contract', () => {
   const rootDir = resolve(__dirname, '..')
-  const hostBundlePath = resolve(rootDir, 'lib/index.js')
-  const clientBundlePath = resolve(rootDir, 'lib/client.js')
+  const hostBundlePath = resolve(rootDir, 'lib/fabric-host.js')
+  const clientBundlePath = resolve(rootDir, 'lib/fabric-client.js')
+  const contractsBundlePath = resolve(rootDir, 'lib/contracts.js')
+  const contractsTypesPath = resolve(rootDir, 'lib/contracts.d.ts')
   const packageJsonPath = resolve(rootDir, 'package.json')
-  const patchYmlPath = resolve(rootDir, 'cordis.patch.yml')
 
-  it('verifies package.json configuration', () => {
+  it('uses the explicit Fabric Runtime manifest without DSH bundle metadata', () => {
     const pkg = JSON.parse(readFileSync(packageJsonPath, 'utf-8'))
     expect(pkg.name).toBe('@dsh-do/fabric-theme-studio')
-    expect(pkg.version).toBe('0.8.0')
-    expect(pkg.main).toBe('lib/index.js')
-    expect(pkg.exports['.']).toBe('./lib/index.js')
-    expect(pkg.exports['./client']).toBe('./lib/client.js')
-    expect(pkg.dsh?.bundle?.patch).toBe('./cordis.patch.yml')
-    expect(pkg.dsh?.client?.inject).toEqual(['@dsh-do/fabric'])
-    expect(pkg.dsh?.client?.inject).not.toContain('fabric')
-    expect(pkg.peerDependencies?.['@dsh-do/fabric']).toBe('^0.7.0')
+    expect(pkg.version).toBe('1.0.0')
+    expect(pkg.fabric).toEqual({
+      format: 1,
+      api: '^1.0.0',
+      host: './lib/fabric-host.js',
+      client: './lib/fabric-client.js',
+      contracts: './lib/contracts.js',
+    })
+    expect(pkg.dsh).toBeUndefined()
+    expect(pkg.main).toBeUndefined()
+    expect(pkg.exports['./contracts']).toMatchObject({
+      types: './lib/contracts.d.ts',
+      default: './lib/contracts.js',
+    })
+    expect(pkg.peerDependencies).toBeUndefined()
   })
 
-  it('verifies cordis.patch.yml consistency', () => {
-    const patchContent = readFileSync(patchYmlPath, 'utf-8')
-    expect(patchContent).toContain('fabric-theme-studio')
-  })
-
-  it('verifies host bundle exists and exports apply function', () => {
+  it('emits a Host definition instead of a statically mounted Cordis plugin', () => {
     expect(existsSync(hostBundlePath)).toBe(true)
     const hostContent = readFileSync(hostBundlePath, 'utf-8')
-    expect(hostContent).toMatch(/export\s*\{[^}]*\bapply\b[^}]*\}/)
-    expect(hostContent).toContain('theme-studio')
-    expect(hostContent).toContain('state')
-    expect(hostContent).toContain('active-set')
+    expect(hostContent).toMatch(/export\s*\{[^}]*\bdefault\b[^}]*\}/u)
+    expect(hostContent).toContain('defineHostPlugin')
+    expect(hostContent).toContain('theme studio document')
+    expect(hostContent).not.toContain('mountHostPlugin(')
   })
 
-  it('verifies client bundle uses the singleton Fabric ABI and scoped public setup', () => {
+  it('registers the stable Runtime module id and owned CSS', () => {
     expect(existsSync(clientBundlePath)).toBe(true)
     const clientContent = readFileSync(clientBundlePath, 'utf-8')
-
-    // Must register as the package name. DSH looks up factories by pkg.name;
-    // an unscoped leftover id loads the script but never lands in the table.
     expect(clientContent).toContain('window.__ModuleLoader__.load')
-    expect(clientContent).toMatch(/window\.__ModuleLoader__\.load\(\{\s*id:\s*"@dsh-do\/fabric-theme-studio"/)
-
-    // Must inline CSS with unique data-plugin attribute
+    expect(clientContent).toMatch(/id:\s*"fabric-runtime\/%40dsh-do%2Ffabric-theme-studio"/u)
     expect(clientContent).toContain('data-plugin')
-    expect(clientContent).toContain('gallery.module.css')
+    expect(clientContent).toContain('fabric-runtime/%40dsh-do%2Ffabric-theme-studio')
+    expect(clientContent).toMatch(/require\(["']@dsh-do\/fabric["']\)/u)
+    expect(clientContent).not.toMatch(/require\(["']@deepseek-ai\//u)
+  })
 
-    // Contributions are registered through the Fabric plugin scope.
-    expect(clientContent).toContain('defineClientPlugin')
-    expect(clientContent).toContain('"theme-studio-api"')
-    expect(clientContent).toContain('"theme-hud"')
-    expect(clientContent).not.toContain('"theme-overlay-hud"')
-    expect(clientContent).toContain('"open-gallery"')
-    expect(clientContent).toContain('Mod+Shift+T')
-    expect(clientContent).toContain('Mod+Alt+T')
-
-    // The singleton runtime is the only Fabric runtime dependency.
-    expect(clientContent).toMatch(/require\(["']@dsh-do\/fabric["']\)/)
-    expect(clientContent).not.toMatch(/require\(["']@dsh-do\/fabric\/client["']\)/)
-    expect(clientContent).not.toContain('registerConfig')
-    expect(clientContent).not.toContain('registerCapability')
+  it('emits the public contract module and declarations', () => {
+    expect(existsSync(contractsBundlePath)).toBe(true)
+    expect(existsSync(contractsTypesPath)).toBe(true)
+    const contracts = readFileSync(contractsBundlePath, 'utf-8')
+    expect(contracts).toContain('id: "theme"')
+    expect(contracts).toContain('owner: "@dsh-do/fabric-theme-studio"')
+    expect(contracts).not.toContain('react')
+    expect(contracts).not.toContain('node:')
   })
 })

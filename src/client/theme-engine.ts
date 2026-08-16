@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import type { FabricResourceClient, FabricThemeDefinition, FabricThemeProvider } from '@dsh-do/fabric/client'
 import {
-  customThemeResource, resetThemeResource, setActiveThemeResource,
-  themeStudioStateResource, wallpaperResource,
+  customThemeResource, legacyThemeStudioMigrationResource, resetThemeResource,
+  setActiveThemeResource, themeStudioStateResource, wallpaperResource,
 } from '../resources.ts'
 import {
   BUILTIN_PRESETS,
@@ -749,17 +749,22 @@ export class ThemeStudioEngine {
     if (this.resources === undefined) return
     const currentSeq = this.syncSeq
     try {
+      const savedActive = typeof localStorage === 'undefined' ? null : localStorage.getItem(STORAGE_KEY_ACTIVE)
+      const savedCustom = typeof localStorage === 'undefined' ? null : localStorage.getItem(STORAGE_KEY_CUSTOM)
+      await this.resources.mutate(legacyThemeStudioMigrationResource, {
+        ...(savedActive === null ? {} : { activeThemeId: savedActive }),
+        customThemes: savedCustom === null ? [] : this.customThemes,
+      })
       const state = await this.resources.read<void, ThemeStudioStatePayload>(themeStudioStateResource, undefined)
       if (this.syncSeq !== currentSeq) return
       this.customThemes = [...state.customThemes]
-      if (state.activeThemeId && (typeof localStorage === 'undefined' || !localStorage.getItem(STORAGE_KEY_ACTIVE))) {
-        const match = this.getAllThemes().find(theme => theme.id === state.activeThemeId)
-        if (match !== undefined) {
-          this.activeThemeId = match.id
-          this.activeTheme = match
-          this.applyThemeToDom(match)
-        }
+      const match = this.getAllThemes().find(theme => theme.id === state.activeThemeId)
+      if (match !== undefined) {
+        this.activeThemeId = match.id
+        this.activeTheme = match
+        this.applyThemeToDom(match)
       }
+      this.persistToStorage()
       this.notify()
     } catch (error) {
       console.error('fabric-theme-studio: state resource failed', error)
